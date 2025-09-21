@@ -12,6 +12,10 @@ Comprehensive documentation for the `@xhilo/pi-react-sdk` package, covering all 
 - **[usePiPayments](./usePiPayments.md)** - High-level payment processing with backend integration
 - **[usePiSimplePayments](./usePiSimplePayments.md)** - Simplified payment creation
 
+### Ads Hooks
+- **[usePiAds](./usePiAds.md)** - Full ads functionality with backend verification
+- **[usePiAdsSimple](./usePiAdsSimple.md)** - Frontend-only ads display
+
 ### Provider Hooks
 - **[useXhiloPi](./useXhiloPi.md)** - Full Pi Network context access
 - **[useXhiloPiUser](./useXhiloPiUser.md)** - User information and logout
@@ -30,311 +34,155 @@ Comprehensive documentation for the `@xhilo/pi-react-sdk` package, covering all 
 ### Security
 - **[Security Guide](./security.md)** - Access token validation and security best practices
 
-## 🚀 Quick Start Guide
+## 🚀 Quick Start
 
-### 1. Installation
+### Installation
 
 ```bash
-npm install @xhilo/pi-react-sdk
+npm install @xhilo/pi-sdk@0.1.0
 ```
 
-### 2. Basic Setup
+### Basic Setup
 
 ```tsx
-import { XhiloPiProvider } from '@xhilo/pi-react-sdk';
+import { XhiloPiProvider, useXhiloPiNetwork } from '@xhilo/pi-sdk';
 
 function App() {
   return (
     <XhiloPiProvider>
-      <YourApp />
+      <MyComponent />
     </XhiloPiProvider>
   );
 }
+
+function MyComponent() {
+  const { createPayment, isInitialized, user } = useXhiloPiNetwork();
+  
+  // Your component logic here
+}
 ```
 
-### 3. Choose Your Hook
+## 🎯 Key Features
 
-#### For Simple Payments (No Backend)
+### **React 19 Compatible**
+- ✅ Supports React 16, 17, 18, and 19
+- ✅ Backward compatible with existing projects
+- ✅ Future-ready for React 19 features
+
+### **Comprehensive Payment Support**
+- **User-to-App (U2A) Payments**: Complete payment lifecycle with backend integration
+- **App-to-User (A2U) Payments**: Server-side payment processing
+- **Access Token Validation**: Enhanced security for U2A payments
+
+### **Advanced Ads Integration**
+- **Full Backend Integration**: Complete ads verification and reward processing
+- **Frontend-Only Option**: Simple ads display without backend requirements
+- **Customizable Logic**: Developer-configurable eligibility and reward functions
+
+### **Developer Experience**
+- **TypeScript Support**: Full type safety and IntelliSense
+- **Comprehensive Logging**: Debug-friendly console output
+- **Error Handling**: Standardized error responses across all hooks
+- **Flexible Architecture**: Mix and match hooks based on your needs
+
+## 📖 Usage Patterns
+
+### **Simple Payment Flow**
 ```tsx
-import { usePiSimplePayments } from '@xhilo/pi-react-sdk';
+import { usePiSimplePayments } from '@xhilo/pi-sdk';
 
-function SimplePayment() {
-  const { createSimplePayment } = usePiSimplePayments();
+function PaymentComponent() {
+  const { createPayment } = usePiSimplePayments();
   
   const handlePayment = async () => {
-    return createSimplePayment({
-      userId: 'user123',
-      amount: 2.0,
-      itemName: 'Premium Feature'
+    const result = await createPayment({
+      amount: 1.0,
+      memo: 'Test payment'
     });
+    
+    if (result.success) {
+      console.log('Payment created:', result.data);
+    }
   };
-
-  return <button onClick={handlePayment}>Buy Premium</button>;
+  
+  return <button onClick={handlePayment}>Pay 1 Pi</button>;
 }
 ```
 
-#### For Advanced Payments (With Backend)
+### **Advanced Payment with Backend**
 ```tsx
-import { usePiPayments, PaymentProcessDisplay } from '@xhilo/pi-react-sdk';
+import { usePiPayments } from '@xhilo/pi-sdk';
 
-function AdvancedPayment() {
-  const { createAndCompletePayment } = usePiPayments();
-  const [processData, setProcessData] = useState(null);
+function AdvancedPaymentComponent() {
+  const { createPayment } = usePiPayments({
+    baseUrl: 'https://your-api.com',
+    onSuccess: (payment) => console.log('Payment successful:', payment),
+    onError: (error) => console.error('Payment failed:', error)
+  });
+  
+  // Payment logic here
+}
+```
 
-  const handlePayment = async () => {
-    return createAndCompletePayment({
-      userId: 'user123',
-      amount: 5.0,
-      memo: 'Premium Subscription',
-      apiConfig: {
-        baseUrl: 'https://myapi.com',
-        approveEndpoint: '/api/payments/approve',
-        completeEndpoint: '/api/payments/complete'
-      },
-      onProcessUpdate: setProcessData
-    });
+### **Ads Integration**
+```tsx
+import { usePiAds } from '@xhilo/pi-sdk';
+
+function AdsComponent() {
+  const { showAd, verifyRewardedAd } = usePiAds({
+    baseUrl: 'https://your-api.com'
+  });
+  
+  const handleShowAd = async () => {
+    const result = await showAd('rewarded');
+    if (result.success) {
+      console.log('Ad shown successfully');
+    }
   };
-
-  return (
-    <div>
-      <button onClick={handlePayment}>Subscribe</button>
-      {processData && <PaymentProcessDisplay processData={processData} />}
-    </div>
-  );
-}
-```
-
-#### For Full Control
-```tsx
-import { useXhiloPiNetwork } from '@xhilo/pi-react-sdk';
-
-function FullControl() {
-  const { 
-    initialize, 
-    authenticate, 
-    createPayment, 
-    user, 
-    isInitialized 
-  } = useXhiloPiNetwork();
-
-  // Your custom implementation
-}
-```
-
-## 🎯 Hook Selection Guide
-
-### When to Use Which Hook
-
-| Hook | Use Case | Backend Required | Progress Updates | Complexity |
-|------|----------|------------------|------------------|------------|
-| `useXhiloPiNetwork` | Full control, custom flows | Optional | No | High |
-| `usePiPayments` | U2A payments with backend | Yes | Yes | Medium |
-| `usePiSimplePayments` | Simple payments, prototyping | No | No | Low |
-| `useXhiloPi` | Context access in nested components | Optional | No | Medium |
-| `useXhiloPiUser` | User management only | No | No | Low |
-| `useXhiloPiReady` | SDK initialization status | No | No | Low |
-| `useXhiloPiLogs` | Debugging and monitoring | No | No | Low |
-
-### Component Selection
-
-| Component | Use Case | Backend Required | Progress Display | Complexity |
-|-----------|----------|------------------|------------------|------------|
-| `PaymentButton` | Quick implementation with backend | Yes | No | Medium |
-| `PaymentProcessDisplay` | Show payment progress | Yes | Yes | Low |
-| `SimplePaymentButton` | Simple payments, prototyping | No | No | Low |
-
-## 📖 Detailed Examples
-
-### E-commerce Integration
-
-```tsx
-import { 
-  usePiPayments, 
-  PaymentProcessDisplay, 
-  useXhiloPiUser 
-} from '@xhilo/pi-react-sdk';
-
-function EcommerceApp() {
-  const { user } = useXhiloPiUser();
-  const { createAndCompletePayment } = usePiPayments();
-  const [processData, setProcessData] = useState(null);
-
-  const handlePurchase = async (product) => {
-    return createAndCompletePayment({
-      userId: user.uid,
-      amount: product.price,
-      memo: `Purchase: ${product.name}`,
-      apiConfig: {
-        baseUrl: process.env.REACT_APP_API_URL,
-        approveEndpoint: '/orders/approve-payment',
-        completeEndpoint: '/orders/complete-payment'
-      },
-      onProcessUpdate: setProcessData,
-      onSuccess: (paymentId) => {
-        // Redirect to success page
-        window.location.href = `/order-success?paymentId=${paymentId}`;
-      }
-    });
-  };
-
-  return (
-    <div>
-      <ProductCatalog onPurchase={handlePurchase} />
-      {processData && <PaymentProcessDisplay processData={processData} />}
-    </div>
-  );
-}
-```
-
-### Subscription Management
-
-```tsx
-import { usePiPayments } from '@xhilo/pi-react-sdk';
-
-function SubscriptionManager() {
-  const { createAndCompletePayment } = usePiPayments();
-
-  const handleRenewal = async (subscription) => {
-    return createAndCompletePayment({
-      userId: subscription.userId,
-      amount: subscription.amount,
-      memo: `Renewal: ${subscription.planName}`,
-      onProcessUpdate: (data) => {
-        // Update subscription status based on progress
-        updateSubscriptionStatus(subscription.id, data.stage);
-      }
-    });
-  };
-
-  return (
-    <div>
-      <SubscriptionPlans onRenewal={handleRenewal} />
-    </div>
-  );
-}
-```
-
-### Debug and Monitoring
-
-```tsx
-import { useXhiloPiLogs, useXhiloPiReady } from '@xhilo/pi-react-sdk';
-
-function DebugPanel() {
-  const { logs, clearLogs } = useXhiloPiLogs();
-  const { isReady, isInitialized } = useXhiloPiReady();
-
-  return (
-    <div className="debug-panel">
-      <h3>Pi SDK Debug Information</h3>
-      
-      <div className="status">
-        <p>Initialized: {isInitialized ? 'Yes' : 'No'}</p>
-        <p>Ready: {isReady ? 'Yes' : 'No'}</p>
-        <p>Logs: {logs.length}</p>
-      </div>
-      
-      <button onClick={clearLogs}>Clear Logs</button>
-      
-      <div className="logs">
-        {logs.map((log, index) => (
-          <div key={index} className={`log log-${log.type}`}>
-            <span>{log.timestamp}</span>
-            <span>{log.type}</span>
-            <span>{log.message}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  
+  return <button onClick={handleShowAd}>Watch Ad</button>;
 }
 ```
 
 ## 🔧 Configuration
 
-### Environment Variables
-
+### **Environment Variables**
 ```bash
-# For U2A payments (User-to-App) - Frontend automatically sends access tokens
+# For U2A payments
 PI_APP_SECRET=your_pi_app_secret_key
 
-# For A2U payments (App-to-User) - Backend only
+# For A2U payments  
 PI_API_KEY=your_pi_api_key
 PI_WALLET_PRIVATE_SEED=your_wallet_private_seed
 ```
 
-### API Configuration
-
+### **Provider Configuration**
 ```tsx
-// For usePiPayments hook
-const apiConfig = {
-  baseUrl: 'https://myapi.com',
-  approveEndpoint: '/api/payments/approve',
-  completeEndpoint: '/api/payments/complete'
-};
+<XhiloPiProvider
+  sandbox={false} // Set to true for testing
+  onReady={() => console.log('SDK ready')}
+  onError={(error) => console.error('SDK error:', error)}
+>
+  <App />
+</XhiloPiProvider>
 ```
 
-### Sandbox Mode
+## 🆕 What's New in v0.1.0
 
-```tsx
-// Enable sandbox mode for testing
-const { initialize } = useXhiloPiNetwork(true);
-```
+- ✅ **React 19 Support**: Full compatibility with React 19
+- ✅ **Enhanced Ads System**: Complete backend integration for ads
+- ✅ **Access Token Validation**: Improved security for U2A payments
+- ✅ **New Hooks**: `usePiAds`, `usePiAdsSimple` for ads functionality
+- ✅ **Better Error Handling**: Standardized error responses
+- ✅ **TypeScript Improvements**: Enhanced type definitions
 
-## 🎨 Styling
+## 🔗 Related Documentation
 
-### CSS Classes
+- **[Backend SDK](../backend/)** - Server-side payment processing
+- **[Templates](../templates/)** - Next.js starter templates
+- **[Examples](../examples/)** - Real-world usage examples
+- **[API Reference](../api-reference/)** - Complete API documentation
 
-All components use consistent CSS classes:
+---
 
-```css
-/* Payment Buttons */
-.payment-button { /* Base styles */ }
-.payment-button--primary { /* Primary variant */ }
-.payment-button--secondary { /* Secondary variant */ }
-
-/* Process Display */
-.payment-process-display { /* Base styles */ }
-.payment-process-display--minimal { /* Minimal variant */ }
-.payment-process-display--detailed { /* Detailed variant */ }
-
-/* Simple Payment Button */
-.simple-payment-button { /* Base styles */ }
-```
-
-### Custom Styling
-
-```css
-.my-custom-payment-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  border-radius: 25px;
-  color: white;
-  font-weight: bold;
-  padding: 15px 30px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-```
-
-## ⚠️ Important Notes
-
-1. **Provider Required** - Wrap your app with `XhiloPiProvider`
-2. **Error Handling** - Always implement proper error handling
-3. **Loading States** - Use loading states for better UX
-4. **Testing** - Test with sandbox mode before production
-5. **Security** - Never expose API keys in client-side code
-
-## 🔗 Related Resources
-
-- [Main README](../README.md) - Package overview and installation
-- [GitHub Repository](https://github.com/xhilo-labs/pi-sdk) - Source code and issues
-- [Pi Network Documentation](https://developers.minepi.com/) - Official Pi Network docs
-- [Support](mailto:support@xhilo.com) - Get help and support
-
-## 📝 Contributing
-
-Contributions are welcome! Please read our contributing guidelines and submit pull requests.
-
-## 📄 License
-
-MIT License - see LICENSE file for details.
+*For more detailed information, explore the individual hook and component documentation above.*
