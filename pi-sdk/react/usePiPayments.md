@@ -374,7 +374,7 @@ function RobustPayment() {
 
 ## 🔧 Backend API Requirements
 
-Your backend needs to implement these endpoints:
+Your backend needs to implement these endpoints with **optional access token validation**:
 
 ### POST `/api/payments/approve`
 ```json
@@ -382,6 +382,12 @@ Your backend needs to implement these endpoints:
   "paymentId": "string",
   "userId": "string"
 }
+```
+
+**Headers:**
+```
+Authorization: Bearer <access_token>  // Optional - for user verification
+Content-Type: application/json
 ```
 
 **Response:**
@@ -401,12 +407,72 @@ Your backend needs to implement these endpoints:
 }
 ```
 
+**Headers:**
+```
+Authorization: Bearer <access_token>  // Optional - for user verification
+Content-Type: application/json
+```
+
 **Response:**
 ```json
 {
   "success": true,
   "message": "Payment completed successfully"
 }
+```
+
+## 🔐 Security & Access Token Validation
+
+### **Automatic Access Token Handling**
+The `usePiPayments` hook **automatically** sends the user's access token in the Authorization header when making backend API calls. This provides enhanced security by:
+
+1. **Verifying User Identity** - Backend can validate the user is legitimate
+2. **Preventing Token Tampering** - Malicious users can't fake payment requests
+3. **Ensuring Real Users** - Only authenticated Pi Network users can make payments
+
+### **Backend Implementation**
+Your backend can optionally validate the access token:
+
+```typescript
+// Backend route example
+export async function POST(request: NextRequest) {
+  // Extract access token from Authorization header
+  const authHeader = request.headers.get('authorization');
+  const accessToken = authHeader?.replace('Bearer ', '');
+  
+  // Optional: Validate access token with Pi Platform API
+  if (accessToken) {
+    try {
+      const userInfo = await getMeAction(accessToken);
+      // Verify user identity and match with userId
+      if (userInfo.data.uid !== userId) {
+        return NextResponse.json(
+          { success: false, message: 'User ID mismatch' },
+          { status: 401 }
+        );
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid access token' },
+        { status: 401 }
+      );
+    }
+  }
+  
+  // Process payment...
+}
+```
+
+### **Environment Variables**
+Your backend needs these environment variables:
+
+```bash
+# For U2A payments (User-to-App)
+PI_APP_SECRET=your_pi_app_secret_key
+
+# For A2U payments (App-to-User) - if you have them
+PI_API_KEY=your_pi_api_key
+PI_WALLET_PRIVATE_SEED=your_wallet_private_seed
 ```
 
 ## ⚠️ Important Notes

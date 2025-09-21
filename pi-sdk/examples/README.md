@@ -1,57 +1,45 @@
-# Examples
+# Pi React SDK Example
 
-This section contains real-world examples and use cases for the Pi SDK.
+This is an example React application demonstrating how to use the `@xhilo/pi-sdk` package.
 
-## 📖 Documentation
+## Features
 
-- [Examples Guide](./examples.md) - Comprehensive examples and use cases
+- **Authentication**: Sign in with Pi Network
+- **User Management**: View user profile and wallet information
+- **Payment Testing**: Create and test Pi Network payments
+- **Ad Integration**: Test interstitial and rewarded ads
+- **Debug Tools**: View SDK logs and debug information
 
-## 🎯 Example Categories
+## Getting Started
 
-### Basic Integration
-- Simple payment processing
-- User authentication
-- Basic component usage
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-### Advanced Features
-- Custom payment flows
-- Backend integration
-- Error handling patterns
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
 
-### Real-world Scenarios
-- E-commerce integration
-- Subscription payments
-- Reward systems
+3. Open your browser and navigate to `http://localhost:3000`
 
-## 🚀 Quick Examples
+## Usage
 
-### React Integration
-```tsx
-import { XhiloPiProvider, usePiPayments } from '@xhilo/pi-sdk/react';
+1. **Sign In**: Click "Sign In with Pi" to authenticate with your Pi Network account
+2. **Navigate**: Use the bottom navigation to explore different features
+3. **Test Payments**: Go to the Payment tab to test payment creation
+4. **View Logs**: Click "Show Debug Logs" to see SDK activity
 
-function App() {
-  return (
-    <XhiloPiProvider sandbox={false}>
-      <PaymentComponent />
-    </XhiloPiProvider>
-  );
-}
-```
+## Important Notes
 
-### Backend Integration
-```typescript
-import { approvePaymentAction } from '@xhilo/pi-sdk/backend';
+- This app must be run in the Pi Browser for full functionality
+- The Pi SDK script is loaded from `https://sdk.minepi.com/pi-sdk.js`
+- All Pi Network features require proper authentication and permissions
 
-// Approve a payment
-const result = await approvePaymentAction({
-  paymentId: 'payment_123',
-  userId: 'user_456'
-});
-```
+## Available Scripts
 
-## 📚 Related Documentation
-
-- [Getting Started](../getting-started/) - Setup and configuration
-- [API Reference](../api-reference/) - Complete API documentation
-- [React SDK](../react/) - React-specific documentation
-- [Backend SDK](../backend/) - Backend integration guide
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint

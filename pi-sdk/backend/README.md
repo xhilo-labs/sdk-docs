@@ -1,40 +1,257 @@
-# Backend SDK Documentation
+# @xhilo/pi-sdk-backend
 
-This section contains all backend-specific documentation for the Pi SDK.
+Backend SDK for Pi Network integration with server-side payment processing capabilities.
 
-## 📖 Documentation
+## Installation
 
-- [Backend SDK Guide](./README.md) - Complete backend SDK documentation
+```bash
+npm install @xhilo/pi-sdk/backend
+# or
+npm install @xhilo/pi-sdk-backend
+```
 
-## 🔧 Backend Features
+## Features
 
-- **User-to-App (U2A) Payments**: Server-side payment approval and completion
-- **App-to-User (A2U) Payments**: Payment creation and submission
-- **Pi Platform Integration**: Direct integration with Pi Network APIs
-- **Type Safety**: Full TypeScript support
-- **Error Handling**: Comprehensive error management
+- **App-to-User (A2U) Payments**: Send Pi from your app to users
+- **User-to-App (U2A) Payments**: Process payments from users to your app
+- **Pi Platform API Integration**: Full integration with Pi Network's official API
+- **TypeScript Support**: Complete type definitions
+- **Express.js Ready**: Built for Node.js server environments
 
-## 🚀 Quick Start
+## Quick Start
 
-1. **Install the backend SDK:**
-   ```bash
-   npm install @xhilo/pi-sdk/backend
-   ```
+### Environment Setup
 
-2. **Configure environment variables:**
-   ```bash
-   PI_API_KEY=your_api_key
-   PI_WALLET_PRIVATE_SEED=your_private_seed
-   ```
+```bash
+# .env
+PI_API_KEY=your_pi_api_key
+PI_WALLET_PRIVATE_SEED=your_wallet_private_seed
+NODE_ENV=development # or production
+```
 
-3. **Import and use:**
-   ```typescript
-   import { approvePaymentAction, completePaymentAction } from '@xhilo/pi-sdk/backend';
-   ```
+### Basic Usage
 
-## 📚 Related Documentation
+```typescript
+import { 
+  createPiBackendClient, 
+  createPiPlatformClient,
+  processA2UWithdrawalAction,
+  approvePaymentAction,
+  completePaymentAction 
+} from '@xhilo/pi-sdk/backend';
 
-- [Getting Started](../getting-started/) - Setup and configuration
-- [API Reference](../api-reference/) - Complete API documentation
-- [Examples](../examples/) - Usage examples
-- [Troubleshooting](../troubleshooting/) - Common issues and solutions
+// Initialize clients
+const piBackend = createPiBackendClient({
+  apiKey: process.env.PI_API_KEY!,
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!,
+  sandbox: process.env.NODE_ENV === 'development'
+});
+
+const piPlatform = createPiPlatformClient({
+  apiKey: process.env.PI_API_KEY!,
+  sandbox: process.env.NODE_ENV === 'development'
+});
+```
+
+## API Reference
+
+### App-to-User (A2U) Payments
+
+Send Pi from your app to users.
+
+```typescript
+import { processA2UWithdrawalAction, createAndMakeA2UPayment } from '@xhilo/pi-sdk/backend';
+
+// Process withdrawal
+const result = await processA2UWithdrawalAction({
+  withdrawalAmount: 10.0,
+  userId: 'user-uid',
+  memo: 'Withdrawal from MyApp',
+  metadata: {
+    withdrawalId: 'wd-123',
+    reason: 'earnings'
+  }
+});
+
+// High-level helper
+const result = await createAndMakeA2UPayment(
+  'user-uid',
+  10.0,
+  'Premium Feature',
+  { customData: 'value' }
+);
+```
+
+### User-to-App (U2A) Payments
+
+Process payments from users to your app.
+
+```typescript
+import { 
+  approvePaymentAction, 
+  completePaymentAction,
+  getPaymentAction 
+} from '@xhilo/pi-sdk/backend';
+
+// Approve a payment (called from frontend callback)
+const approveResult = await approvePaymentAction({
+  paymentId: 'payment-id',
+  userId: 'user-uid'
+});
+
+// Complete a payment (called from frontend callback)
+const completeResult = await completePaymentAction({
+  paymentId: 'payment-id',
+  txid: 'transaction-id',
+  userId: 'user-uid'
+});
+
+// Get payment details
+const payment = await getPaymentAction('payment-id');
+```
+
+### Pi Platform API Client
+
+Direct access to Pi Network's official API.
+
+```typescript
+import { createPiPlatformClient } from '@xhilo/pi-sdk/backend';
+
+const client = createPiPlatformClient({
+  apiKey: process.env.PI_API_KEY!,
+  sandbox: true
+});
+
+// Get payment details
+const payment = await client.getPayment('payment-id');
+
+// Get user information
+const user = await client.getMe();
+
+// Approve payment
+await client.approvePayment('payment-id');
+
+// Complete payment
+await client.completePayment('payment-id', 'txid');
+
+// Cancel payment
+await client.cancelPayment('payment-id');
+```
+
+### Backend Client
+
+Low-level access to Pi backend SDK.
+
+```typescript
+import { createPiBackendClient } from '@xhilo/pi-sdk/backend';
+
+const client = createPiBackendClient({
+  apiKey: process.env.PI_API_KEY!,
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!,
+  sandbox: true
+});
+
+// Create payment
+const paymentId = await client.createPayment({
+  amount: 10.0,
+  memo: 'Payment memo',
+  metadata: { orderId: '123' },
+  uid: 'user-uid'
+});
+
+// Submit payment
+const txid = await client.submitPayment({ paymentId });
+
+// Complete payment
+const result = await client.completePayment({ paymentId, txid });
+```
+
+## Express.js Integration
+
+```typescript
+import express from 'express';
+import { 
+  processA2UWithdrawalAction,
+  approvePaymentAction,
+  completePaymentAction 
+} from '@xhilo/pi-sdk/backend';
+
+const app = express();
+app.use(express.json());
+
+// A2U withdrawal endpoint
+app.post('/api/withdraw', async (req, res) => {
+  try {
+    const result = await processA2UWithdrawalAction(req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// U2A payment approval endpoint
+app.post('/api/payments/:id/approve', async (req, res) => {
+  try {
+    const result = await approvePaymentAction({
+      paymentId: req.params.id,
+      userId: req.body.userId
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// U2A payment completion endpoint
+app.post('/api/payments/:id/complete', async (req, res) => {
+  try {
+    const result = await completePaymentAction({
+      paymentId: req.params.id,
+      txid: req.body.txid,
+      userId: req.body.userId
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+```
+
+## Error Handling
+
+All functions return a consistent result format:
+
+```typescript
+interface PiOperationResult<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+}
+```
+
+```typescript
+const result = await processA2UWithdrawalAction(args);
+
+if (result.success) {
+  console.log('Payment processed:', result.paymentId);
+} else {
+  console.error('Payment failed:', result.message);
+}
+```
+
+## TypeScript Support
+
+The package includes complete TypeScript definitions:
+
+```typescript
+import type { 
+  PiOperationResult,
+  PaymentData,
+  PiBackendConfig,
+  ProcessA2UWithdrawalArgs 
+} from '@xhilo/pi-sdk/backend';
+```
+
+## License
+
+MIT
