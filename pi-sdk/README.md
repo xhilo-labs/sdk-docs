@@ -12,6 +12,22 @@ The Pi SDK uses an **action-based architecture** for backend operations:
 - **Type Safety**: Full TypeScript support with comprehensive type definitions
 - **Security**: Optional access token validation for enhanced security
 
+## 🎯 Features
+
+### **React Hooks**
+- **`useXhiloPiNetwork`** - Core Pi Network integration with authentication
+- **`usePiPayments`** - Complete payment lifecycle management
+- **`usePiSimplePayments`** - Simplified payment processing
+- **`usePiAds`** - Ads functionality with backend verification
+- **`XhiloPiProvider`** - Context provider for Pi Network state
+
+### **Backend Actions**
+- **`userToAppPayment`** - Server-side U2A payment processing
+- **`appToUserPayment`** - Server-side A2U payment processing
+- **`ads`** - Ads verification and reward processing
+- **`piPlatformFetchClient`** - Pi Platform API integration
+- **`pi-backend-sdk`** - Pi Backend SDK integration
+
 ## 🔐 Security Features
 
 ### **Access Token Validation (U2A Payments)**
@@ -44,6 +60,7 @@ PI_WALLET_PRIVATE_SEED=your_wallet_private_seed
 
 3. **Read the documentation:**
    - [Getting Started](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/getting-started)
+   - [Developer Flow](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/react/dev-flow)
    - [API Reference](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/api-reference)
    - [React SDK](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/react)
    - [Backend SDK](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/backend)
@@ -55,6 +72,9 @@ PI_WALLET_PRIVATE_SEED=your_wallet_private_seed
 
 ### [Getting Started](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/getting-started)
 Learn how to set up the SDK in your project, configure environment variables, and make your first payment.
+
+### [Developer Flow](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/react/dev-flow)
+Complete implementation guide for payments and ads with step-by-step examples and best practices.
 
 ### [API Reference](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/api-reference)
 Complete API documentation for all components, hooks, and backend functions.

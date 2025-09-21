@@ -4,6 +4,9 @@ Comprehensive documentation for the `@xhilo/pi-react-sdk` package, covering all 
 
 ## 📚 Documentation Index
 
+### Getting Started
+- **[Developer Flow](./dev-flow.md)** - Complete implementation guide for payments and ads
+
 ### Core Hooks
 - **[useXhiloPiNetwork](./useXhiloPiNetwork.md)** - Main hook for Pi Network functionality
 - **[usePiPayments](./usePiPayments.md)** - High-level payment processing with backend integration
