@@ -16,20 +16,11 @@ Comprehensive documentation for the `@xhilo/pi-sdk/react` package, covering all 
 - **[usePiAds](./usePiAds.md)** - Full ads functionality with backend verification
 - **[usePiAdsSimple](./usePiAdsSimple.md)** - Frontend-only ads display
 
-### Provider Hooks
-- **[useXhiloPi](./useXhiloPi.md)** - Full Pi Network context access
-- **[useXhiloPiUser](./useXhiloPiUser.md)** - User information and logout
-- **[useXhiloPiReady](./useXhiloPiReady.md)** - SDK initialization status
-- **[useXhiloPiLogs](./useXhiloPiLogs.md)** - Console logs for debugging
-
 ### Components
 - **[PaymentButton](./PaymentButton.md)** - Pre-built payment button with backend integration
 - **[PaymentProcessDisplay](./PaymentProcessDisplay.md)** - Display real-time payment progress
 - **[SimplePaymentButton](./SimplePaymentButton.md)** - Simple payment button for basic use cases
 - **[Components Overview](./components.md)** - All components and usage patterns
-
-### Provider Hooks
-- **[Provider Hooks Overview](./provider-hooks.md)** - Context-based hooks for complex component hierarchies
 
 ### Security
 - **[Security Guide](./security.md)** - Access token validation and security best practices
@@ -45,15 +36,7 @@ npm install @xhilo/pi-sdk
 ### Basic Setup
 
 ```tsx
-import { XhiloPiProvider, useXhiloPiNetwork } from '@xhilo/pi-sdk/react';
-
-function App() {
-  return (
-    <XhiloPiProvider>
-      <MyComponent />
-    </XhiloPiProvider>
-  );
-}
+import { useXhiloPiNetwork } from '@xhilo/pi-sdk/react';
 
 function MyComponent() {
   const { createPayment, isInitialized, user } = useXhiloPiNetwork();
@@ -156,16 +139,6 @@ PI_API_KEY=your_pi_api_key
 PI_WALLET_PRIVATE_SEED=your_wallet_private_seed
 ```
 
-### **Provider Configuration**
-```tsx
-<XhiloPiProvider
-  sandbox={false} // Set to true for testing
-  onReady={() => console.log('SDK ready')}
-  onError={(error) => console.error('SDK error:', error)}
->
-  <App />
-</XhiloPiProvider>
-```
 
 ## 🆕 What's New in v0.2.14
 

@@ -32,12 +32,20 @@ function MyComponent() {
 - **Default:** `false`
 - **Description:** Enable sandbox mode for testing
 
+### `allowedOrigins` (optional)
+- **Type:** `string[]`
+- **Default:** `undefined`
+- **Description:** Allowed origins for security
+
 ```tsx
 // Production mode (default)
 const pi = useXhiloPiNetwork();
 
 // Sandbox mode for testing
 const pi = useXhiloPiNetwork(true);
+
+// With allowed origins
+const pi = useXhiloPiNetwork(false, ['https://myapp.com']);
 ```
 
 ## 📤 Return Values
@@ -50,6 +58,7 @@ const pi = useXhiloPiNetwork(true);
 ### Authentication Methods
 - **`initialize()`** - Initialize the Pi SDK
 - **`authenticate(scopes, onIncompletePaymentFound)`** - Authenticate user
+- **`login()`** - Login user (alias for authenticate)
 - **`logout()`** - Logout current user
 
 ### Payment Methods

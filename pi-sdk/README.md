@@ -19,15 +19,20 @@ The Pi SDK uses a **configuration-driven architecture** for all operations:
 - **`useXhiloPiNetwork`** - Core Pi Network integration with authentication
 - **`usePiPayments`** - Complete payment lifecycle management
 - **`usePiSimplePayments`** - Simplified payment processing
-- **`usePiAds`** - Ads functionality with backend verification
-- **`XhiloPiProvider`** - Context provider for Pi Network state
+- **`usePiAds`** - Full ads functionality with backend verification
+- **`usePiAdsSimple`** - Frontend-only ads display
+
+### **React Components**
+- **`PaymentButton`** - Pre-built payment button with backend integration
+- **`PaymentProcessDisplay`** - Display real-time payment progress
+- **`SimplePaymentButton`** - Simple payment button for basic use cases
 
 ### **Backend Actions**
 - **`processA2UWithdrawalAction`** - Server-side A2U payment processing
 - **`createAndMakeA2UPayment`** - High-level A2U payment helper
 - **`approvePaymentAction`** - Server-side U2A payment approval
 - **`completePaymentAction`** - Server-side U2A payment completion
-- **`verifyRewardedAdAction`** - Ads verification and reward processing
+- **`verifyRewardedAdAction`** - Server-side ads verification
 - **`getAdEligibilityAction`** - Check user ad eligibility
 - **`getUserAdStatsAction`** - Get user ad statistics
 
@@ -66,7 +71,7 @@ const piBackendConfig: PiBackendConfig = {
    ```
 
 3. **Read the documentation:**
-   - [Configuration Guide](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/CONFIGURATION_GUIDE) - Start here for proper setup
+   - [Configuration Guide](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/CONFIGURATION_GUIDE) - Start here for proper setup.
    - [Real Examples](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/REAL_EXAMPLES) - Working examples based on actual implementation
    - [Getting Started](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/getting-started)
    - [API Reference](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/api-reference)
@@ -75,7 +80,7 @@ const piBackendConfig: PiBackendConfig = {
    - [Templates](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/templates)
    - [Troubleshooting](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/troubleshooting)
 
-## 📚 Documentation Sections
+## 📚 Documentation Section
 
 ### [Configuration Guide](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/CONFIGURATION_GUIDE)
 Complete guide to the configuration-driven architecture, including PiBackendConfig vs PiPlatformConfig, framework integration, and best practices.

@@ -13,7 +13,7 @@ Pre-built React components for Pi Network integration. These components provide 
 ```tsx
 import { 
   PaymentButton, 
-  PaymentProcessDisplay, 
+  PaymentProcessDisplay,
   SimplePaymentButton 
 } from '@xhilo/pi-sdk';
 
@@ -57,7 +57,6 @@ function MyComponent() {
 ```tsx
 import { 
   PaymentButton, 
-  PaymentProcessDisplay, 
   usePiPayments 
 } from '@xhilo/pi-sdk';
 
@@ -90,7 +89,7 @@ function PaymentInterface() {
       </PaymentButton>
       
       {processData && (
-        <PaymentProcessDisplay processData={processData} />
+        <div>Payment in progress...</div>
       )}
     </div>
   );
@@ -161,10 +160,7 @@ function SubscriptionPlans() {
       <h2>Choose Your Plan</h2>
       
       {processData && (
-        <PaymentProcessDisplay 
-          processData={processData}
-          variant="minimal"
-        />
+        <div>Payment in progress...</div>
       )}
       
       <div className="plans-grid">
@@ -482,7 +478,6 @@ All components use consistent CSS classes for styling:
 ## 🔗 Related Documentation
 
 - [PaymentButton](./PaymentButton.md) - Detailed payment button documentation
-- [PaymentProcessDisplay](./PaymentProcessDisplay.md) - Process display documentation
 - [SimplePaymentButton](./SimplePaymentButton.md) - Simple button documentation
 - [usePiPayments](./usePiPayments.md) - Advanced payment hook
 - [usePiSimplePayments](./usePiSimplePayments.md) - Simple payment hook

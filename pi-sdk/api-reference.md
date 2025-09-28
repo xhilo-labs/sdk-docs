@@ -151,6 +151,102 @@ function SimpleAdsComponent() {
 - `isProcessing: boolean` - Whether ad operation is processing
 - `error: string | null` - Current error message
 
+## React Components
+
+### PaymentButton
+
+Pre-built payment button with backend integration.
+
+```tsx
+import { PaymentButton } from '@xhilo/pi-sdk/react'
+
+function MyComponent() {
+  return (
+    <PaymentButton
+      userId="user123"
+      amount={5.0}
+      memo="Premium Feature"
+      onSuccess={(paymentId) => console.log('Success:', paymentId)}
+    >
+      Buy Premium
+    </PaymentButton>
+  )
+}
+```
+
+**Props:**
+- `userId: string` - User ID
+- `amount: number` - Payment amount
+- `memo: string` - Payment memo
+- `metadata?: Record<string, any>` - Additional metadata
+- `className?: string` - CSS class
+- `children?: React.ReactNode` - Button content
+- `onSuccess?: (paymentId: string) => void` - Success callback
+- `onError?: (error: string) => void` - Error callback
+- `onCancel?: () => void` - Cancel callback
+
+### PaymentProcessDisplay
+
+Display real-time payment progress.
+
+```tsx
+import { PaymentProcessDisplay } from '@xhilo/pi-sdk/react'
+
+function PaymentComponent() {
+  const [processData, setProcessData] = useState(null)
+  
+  return (
+    <div>
+      {processData && (
+        <PaymentProcessDisplay 
+          processData={processData}
+          showProgress={true}
+          showTimestamp={true}
+        />
+      )}
+    </div>
+  )
+}
+```
+
+**Props:**
+- `processData: PaymentProcessData` - Payment process data
+- `className?: string` - CSS class
+- `showProgress?: boolean` - Show progress bar (default: true)
+- `showTimestamp?: boolean` - Show timestamp (default: true)
+
+### SimplePaymentButton
+
+Simple payment button for basic use cases.
+
+```tsx
+import { SimplePaymentButton } from '@xhilo/pi-sdk/react'
+
+function MyComponent() {
+  return (
+    <SimplePaymentButton
+      userId="user123"
+      amount={2.5}
+      itemName="Digital Download"
+      onSuccess={(paymentId) => console.log('Success:', paymentId)}
+    >
+      Buy Download
+    </SimplePaymentButton>
+  )
+}
+```
+
+**Props:**
+- `userId: string` - User ID
+- `amount: number` - Payment amount
+- `itemName: string` - Item name
+- `customMetadata?: Record<string, any>` - Custom metadata
+- `className?: string` - CSS class
+- `children?: React.ReactNode` - Button content
+- `onSuccess?: (paymentId: string) => void` - Success callback
+- `onError?: (error: string) => void` - Error callback
+- `onCancel?: () => void` - Cancel callback
+
 ## Backend Actions
 
 All backend actions are **async** and require **explicit configuration parameters**.

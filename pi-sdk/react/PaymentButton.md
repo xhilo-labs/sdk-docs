@@ -14,12 +14,11 @@ import { PaymentButton } from '@xhilo/pi-sdk';
 function MyComponent() {
   return (
     <PaymentButton
-      onPayment={async () => {
-        // Your payment logic here
-        return { success: true, data: 'payment123' };
-      }}
+      userId="user123"
       amount={5.0}
-      itemName="Premium Feature"
+      memo="Premium Feature"
+      onSuccess={(paymentId) => console.log('Payment successful:', paymentId)}
+      onError={(error) => console.error('Payment failed:', error)}
     >
       Buy Premium
     </PaymentButton>
@@ -33,18 +32,15 @@ function MyComponent() {
 
 ```tsx
 interface PaymentButtonProps {
-  onPayment: () => Promise<PiOperationResult<string>>; // Required: Payment function
-  amount: number;                                      // Required: Payment amount
-  itemName: string;                                    // Required: Item name
-  children: React.ReactNode;                           // Required: Button content
-  disabled?: boolean;                                  // Optional: Disable button
-  loading?: boolean;                                   // Optional: Show loading state
-  variant?: 'primary' | 'secondary' | 'success' | 'danger'; // Optional: Button variant
-  size?: 'small' | 'medium' | 'large';                // Optional: Button size
-  className?: string;                                  // Optional: CSS class
-  style?: React.CSSProperties;                        // Optional: Inline styles
-  showAmount?: boolean;                                // Optional: Show amount in button (default: true)
-  showItemName?: boolean;                              // Optional: Show item name in button (default: false)
+  userId: string;                    // Required: User ID
+  amount: number;                    // Required: Payment amount
+  memo: string;                      // Required: Payment memo
+  metadata?: Record<string, any>;    // Optional: Additional metadata
+  className?: string;                // Optional: CSS class
+  children?: React.ReactNode;        // Optional: Button content
+  onSuccess?: (paymentId: string) => void;  // Optional: Success callback
+  onError?: (error: string) => void;        // Optional: Error callback
+  onCancel?: () => void;                    // Optional: Cancel callback
 }
 ```
 
@@ -68,24 +64,15 @@ interface PaymentButtonProps {
 ### 1. Basic Payment Button
 
 ```tsx
-import { PaymentButton, usePiSimplePayments } from '@xhilo/pi-sdk';
+import { PaymentButton } from '@xhilo/pi-sdk';
 
 function BasicPayment() {
-  const { createSimplePayment } = usePiSimplePayments();
-
-  const handlePayment = async () => {
-    return createSimplePayment({
-      userId: 'user123',
-      amount: 2.5,
-      itemName: 'Digital Download'
-    });
-  };
-
   return (
     <PaymentButton
-      onPayment={handlePayment}
+      userId="user123"
       amount={2.5}
-      itemName="Digital Download"
+      memo="Digital Download"
+      onSuccess={(paymentId) => console.log('Download purchased:', paymentId)}
     >
       Buy Download
     </PaymentButton>
@@ -93,54 +80,30 @@ function BasicPayment() {
 }
 ```
 
-### 2. Different Variants and Sizes
+### 2. Multiple Payment Options
 
 ```tsx
-function VariantExamples() {
-  const { createSimplePayment } = usePiSimplePayments();
-
-  const handlePayment = async () => {
-    return createSimplePayment({
-      userId: 'user123',
-      amount: 5.0,
-      itemName: 'Premium Plan'
-    });
-  };
+function MultiplePayments() {
+  const plans = [
+    { name: 'Basic', price: 3.0, memo: 'Basic Plan' },
+    { name: 'Premium', price: 5.0, memo: 'Premium Plan' },
+    { name: 'Trial', price: 1.0, memo: 'Trial Plan' }
+  ];
 
   return (
     <div>
-      {/* Primary variant */}
-      <PaymentButton
-        onPayment={handlePayment}
-        amount={5.0}
-        itemName="Premium Plan"
-        variant="primary"
-        size="large"
-      >
-        Get Premium
-      </PaymentButton>
-
-      {/* Secondary variant */}
-      <PaymentButton
-        onPayment={handlePayment}
-        amount={3.0}
-        itemName="Basic Plan"
-        variant="secondary"
-        size="medium"
-      >
-        Get Basic
-      </PaymentButton>
-
-      {/* Success variant */}
-      <PaymentButton
-        onPayment={handlePayment}
-        amount={1.0}
-        itemName="Trial"
-        variant="success"
-        size="small"
-      >
-        Start Trial
-      </PaymentButton>
+      {plans.map(plan => (
+        <PaymentButton
+          key={plan.name}
+          userId="user123"
+          amount={plan.price}
+          memo={plan.memo}
+          className="mr-2 mb-2"
+          onSuccess={(paymentId) => console.log(`${plan.name} purchased:`, paymentId)}
+        >
+          Get {plan.name}
+        </PaymentButton>
+      ))}
     </div>
   );
 }
@@ -150,21 +113,11 @@ function VariantExamples() {
 
 ```tsx
 function CustomStyledButton() {
-  const { createSimplePayment } = usePiSimplePayments();
-
-  const handlePayment = async () => {
-    return createSimplePayment({
-      userId: 'user123',
-      amount: 10.0,
-      itemName: 'Custom Product'
-    });
-  };
-
   return (
     <PaymentButton
-      onPayment={handlePayment}
+      userId="user123"
       amount={10.0}
-      itemName="Custom Product"
+      memo="Custom Product"
       className="my-custom-payment-button"
       style={{
         background: 'linear-gradient(45deg, #ff6b6b, #4ecdc4)',
@@ -177,8 +130,7 @@ function CustomStyledButton() {
         boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
         transition: 'all 0.3s ease'
       }}
-      showAmount={true}
-      showItemName={true}
+      onSuccess={(paymentId) => console.log('Custom product purchased:', paymentId)}
     >
       🚀 Buy Custom Product
     </PaymentButton>
@@ -190,33 +142,6 @@ function CustomStyledButton() {
 
 ```tsx
 function ProductCard({ product }) {
-  const { createSimplePayment } = usePiSimplePayments();
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const handlePurchase = async () => {
-    setIsProcessing(true);
-    try {
-      const result = await createSimplePayment({
-        userId: 'user123',
-        amount: product.price,
-        itemName: product.name,
-        customMetadata: {
-          productId: product.id,
-          category: product.category
-        }
-      });
-      
-      if (result.success) {
-        // Handle success
-        console.log('Purchase successful:', result.data);
-      }
-    } catch (error) {
-      console.error('Purchase failed:', error);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   return (
     <div className="product-card">
       <img src={product.image} alt={product.name} />
@@ -225,15 +150,17 @@ function ProductCard({ product }) {
       <p className="price">{product.price} Pi</p>
       
       <PaymentButton
-        onPayment={handlePurchase}
+        userId="user123"
         amount={product.price}
-        itemName={product.name}
-        loading={isProcessing}
-        variant="primary"
-        size="large"
-        showAmount={true}
+        memo={product.name}
+        metadata={{
+          productId: product.id,
+          category: product.category
+        }}
+        onSuccess={(paymentId) => console.log('Purchase successful:', paymentId)}
+        onError={(error) => console.error('Purchase failed:', error)}
       >
-        {isProcessing ? 'Processing...' : 'Add to Cart'}
+        Buy Now
       </PaymentButton>
     </div>
   );
@@ -244,25 +171,11 @@ function ProductCard({ product }) {
 
 ```tsx
 function SubscriptionPlans() {
-  const { createSimplePayment } = usePiSimplePayments();
-
   const plans = [
     { name: 'Basic', price: 5.0, features: ['Feature 1', 'Feature 2'] },
     { name: 'Pro', price: 15.0, features: ['All Basic', 'Feature 3', 'Feature 4'] },
     { name: 'Enterprise', price: 50.0, features: ['All Pro', 'Feature 5', 'Support'] }
   ];
-
-  const handlePlanSelection = async (plan) => {
-    return createSimplePayment({
-      userId: 'user123',
-      amount: plan.price,
-      itemName: `${plan.name} Plan`,
-      customMetadata: {
-        planType: plan.name.toLowerCase(),
-        features: plan.features
-      }
-    });
-  };
 
   return (
     <div className="subscription-plans">
@@ -277,13 +190,14 @@ function SubscriptionPlans() {
           </ul>
           
           <PaymentButton
-            onPayment={() => handlePlanSelection(plan)}
+            userId="user123"
             amount={plan.price}
-            itemName={`${plan.name} Plan`}
-            variant={plan.name === 'Pro' ? 'primary' : 'secondary'}
-            size="large"
-            showAmount={true}
-            showItemName={true}
+            memo={`${plan.name} Plan`}
+            metadata={{
+              planType: plan.name.toLowerCase(),
+              features: plan.features
+            }}
+            onSuccess={(paymentId) => console.log(`${plan.name} plan selected:`, paymentId)}
           >
             Choose {plan.name}
           </PaymentButton>
@@ -298,25 +212,13 @@ function SubscriptionPlans() {
 
 ```tsx
 function PaymentForm() {
-  const { createSimplePayment } = usePiSimplePayments();
   const [formData, setFormData] = useState({
     amount: '',
-    itemName: '',
+    memo: '',
     userId: ''
   });
 
-  const handleFormPayment = async () => {
-    if (!formData.amount || !formData.itemName || !formData.userId) {
-      alert('Please fill in all fields');
-      return { success: false, message: 'Missing required fields' };
-    }
-
-    return createSimplePayment({
-      userId: formData.userId,
-      amount: parseFloat(formData.amount),
-      itemName: formData.itemName
-    });
-  };
+  const isFormValid = formData.amount && formData.memo && formData.userId;
 
   return (
     <form className="payment-form">
@@ -331,11 +233,11 @@ function PaymentForm() {
       </div>
       
       <div>
-        <label>Item Name:</label>
+        <label>Memo:</label>
         <input
           type="text"
-          value={formData.itemName}
-          onChange={(e) => setFormData({...formData, itemName: e.target.value})}
+          value={formData.memo}
+          onChange={(e) => setFormData({...formData, memo: e.target.value})}
           required
         />
       </div>
@@ -352,13 +254,15 @@ function PaymentForm() {
       </div>
       
       <PaymentButton
-        onPayment={handleFormPayment}
+        userId={formData.userId}
         amount={parseFloat(formData.amount) || 0}
-        itemName={formData.itemName || 'Custom Item'}
-        variant="primary"
-        size="large"
-        showAmount={true}
-        showItemName={true}
+        memo={formData.memo || 'Custom Item'}
+        disabled={!isFormValid}
+        onSuccess={(paymentId) => {
+          console.log('Payment created:', paymentId);
+          setFormData({ amount: '', memo: '', userId: '' });
+        }}
+        onError={(error) => console.error('Payment failed:', error)}
       >
         Create Payment
       </PaymentButton>
@@ -371,21 +275,12 @@ function PaymentForm() {
 
 ```tsx
 function ConditionalPayment({ user, product }) {
-  const { createSimplePayment } = usePiSimplePayments();
   const [isEligible, setIsEligible] = useState(false);
 
   useEffect(() => {
     // Check if user is eligible for this product
     checkEligibility(user.id, product.id).then(setIsEligible);
   }, [user.id, product.id]);
-
-  const handlePayment = async () => {
-    return createSimplePayment({
-      userId: user.id,
-      amount: product.price,
-      itemName: product.name
-    });
-  };
 
   if (!isEligible) {
     return (
@@ -397,10 +292,10 @@ function ConditionalPayment({ user, product }) {
 
   return (
     <PaymentButton
-      onPayment={handlePayment}
+      userId={user.id}
       amount={product.price}
-      itemName={product.name}
-      variant="primary"
+      memo={product.name}
+      onSuccess={(paymentId) => console.log('Product purchased:', paymentId)}
     >
       Buy Now
     </PaymentButton>
