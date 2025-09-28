@@ -9,7 +9,7 @@ A pre-built React component that provides a ready-to-use payment button with bui
 ## 🚀 Basic Usage
 
 ```tsx
-import { PaymentButton } from '@xhilo/pi-sdk';
+import { PaymentButton } from '@xhilo/pi-sdk/react';
 
 function MyComponent() {
   return (
@@ -64,7 +64,7 @@ interface PaymentButtonProps {
 ### 1. Basic Payment Button
 
 ```tsx
-import { PaymentButton } from '@xhilo/pi-sdk';
+import { PaymentButton } from '@xhilo/pi-sdk/react';
 
 function BasicPayment() {
   return (

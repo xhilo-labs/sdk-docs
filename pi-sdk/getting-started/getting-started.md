@@ -141,34 +141,39 @@ export default function RootLayout({ children }) {
 }
 ```
 
-### 2. Create Client Provider
+### 2. Create Main App Component
 
 ```tsx
-// components/ClientProvider.tsx
+// app/page.tsx
 'use client'
 
-import { XhiloPiProvider } from '@xhilo/pi-sdk/react'
+import { useXhiloPiNetwork } from '@xhilo/pi-sdk/react'
 
-export default function ClientProvider({ children }) {
-  return <XhiloPiProvider>{children}</XhiloPiProvider>
-}
-```
+export default function HomePage() {
+  const { initialize, authenticate, user, isInitialized } = useXhiloPiNetwork()
 
-### 3. Wrap Your App
+  useEffect(() => {
+    if (!isInitialized) {
+      initialize()
+    }
+  }, [isInitialized, initialize])
 
-```tsx
-// app/layout.tsx
-import ClientProvider from './components/ClientProvider'
+  if (!user) {
+    return (
+      <div>
+        <h1>Welcome to My Pi App</h1>
+        <button onClick={() => authenticate(['username', 'payments'])}>
+          Sign In with Pi
+        </button>
+      </div>
+    )
+  }
 
-export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
-        <ClientProvider>
-          {children}
-        </ClientProvider>
-      </body>
-    </html>
+    <div>
+      <h1>Welcome, {user.username}!</h1>
+      <p>You are signed in with Pi Network</p>
+    </div>
   )
 }
 ```

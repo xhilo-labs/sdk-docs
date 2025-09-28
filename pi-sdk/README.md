@@ -16,11 +16,18 @@ The Pi SDK uses a **configuration-driven architecture** for all operations:
 ## 🎯 Features
 
 ### **React Hooks**
-- **`useXhiloPiNetwork`** - Core Pi Network integration with authentication
+- **`useXhiloPiNetwork`** - Core Pi Network integration with enhanced state management
 - **`usePiPayments`** - Complete payment lifecycle management
 - **`usePiSimplePayments`** - Simplified payment processing
 - **`usePiAds`** - Full ads functionality with backend verification
 - **`usePiAdsSimple`** - Frontend-only ads display
+
+### **Enhanced State Management**
+- **Scope Management** - Track and validate user permissions (`hasScope`, `hasAllScopes`, `missingScopes`)
+- **Token Management** - Real-time expiry detection and handling (`isTokenExpired`, `tokenExpiry`)
+- **Authentication State** - Comprehensive auth state tracking (`isAuthenticated`, `authenticatedScopes`)
+- **Automatic Recovery** - Auto-reset invalid states (`reset`, `refreshAuth`)
+- **Zombie Auth Prevention** - Prevents broken authentication states
 
 ### **React Components**
 - **`PaymentButton`** - Pre-built payment button with backend integration
@@ -154,6 +161,12 @@ MIT License - see LICENSE file for details.
 ## 🤝 Contributing
 
 Contributions are welcome! Please read our contributing guidelines and submit pull requests.
+
+## 📚 Additional Guides
+
+- **[Enhanced State Management Guide](./ENHANCED_STATE_MANAGEMENT.md)** - Comprehensive guide to the new state management features
+- **[Configuration Guide](./CONFIGURATION_GUIDE.md)** - How to configure the SDK properly
+- **[Real Examples](./REAL_EXAMPLES.md)** - Working code examples for common use cases
 
 ## 📞 Support
 

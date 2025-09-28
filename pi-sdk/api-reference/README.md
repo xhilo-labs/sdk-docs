@@ -5,349 +5,552 @@ title: API Reference
 
 # API Reference
 
-Complete API documentation for the Pi SDK.
-
-## React Components
-
-### XhiloPiProvider
-
-Context provider that wraps your React application to provide Pi Network functionality.
-
-```tsx
-import { XhiloPiProvider } from '@xhilo/pi-sdk/react'
-
-<XhiloPiProvider>
-  <App />
-</XhiloPiProvider>
-```
-
-**Props:**
-- `children: React.ReactNode` - Your app components
-- `config?: PiConfig` - Optional configuration
-
-### PaymentButton
-
-Ready-to-use payment button component.
-
-```tsx
-import { PaymentButton } from '@xhilo/pi-sdk/react'
-
-<PaymentButton
-  amount={1.0}
-  memo="Test payment"
-  onSuccess={(payment) => console.log('Success:', payment)}
-  onError={(error) => console.error('Error:', error)}
-/>
-```
-
-**Props:**
-- `amount: number` - Payment amount in Pi
-- `memo: string` - Payment description
-- `onSuccess: (payment: Payment) => void` - Success callback
-- `onError: (error: Error) => void` - Error callback
-- `onCancel: () => void` - Cancel callback
-- `metadata?: object` - Additional payment data
-
-### SimplePaymentButton
-
-Simplified payment button for basic use cases.
-
-```tsx
-import { SimplePaymentButton } from '@xhilo/pi-sdk/react'
-
-<SimplePaymentButton
-  amount={1.0}
-  memo="Simple payment"
-  onSuccess={(payment) => console.log('Success:', payment)}
-/>
-```
-
-### PaymentProcessDisplay
-
-Component to display payment processing status.
-
-```tsx
-import { PaymentProcessDisplay } from '@xhilo/pi-sdk/react'
-
-<PaymentProcessDisplay
-  payment={payment}
-  showProgress={true}
-  className="my-payment-display"
-/>
-```
+Complete API documentation for the Pi SDK with enhanced state management.
 
 ## React Hooks
 
-### useXhiloPi
+### useXhiloPiNetwork
 
-Main hook for accessing the Pi SDK instance.
+Main hook for Pi Network integration with enhanced state management.
 
 ```tsx
-import { useXhiloPi } from '@xhilo/pi-sdk/react'
+import { useXhiloPiNetwork } from '@xhilo/pi-sdk/react'
 
 function MyComponent() {
-  const pi = useXhiloPi()
+  const {
+    // Core functionality
+    initialize,
+    authenticate,
+    user,
+    isInitialized,
+    
+    // Enhanced state management
+    isAuthenticated,
+    authenticatedScopes,
+    hasScope,
+    hasAllScopes,
+    missingScopes,
+    isTokenExpired,
+    tokenExpiry,
+    reset,
+    refreshAuth,
+    
+    // Payment methods
+    createPayment,
+    createAndMakePayment,
+    
+    // Other methods
+    getConsoleLogs
+  } = useXhiloPiNetwork(sandbox?, allowedOrigins?)
   
-  // Access SDK methods
-  const initialize = pi.initialize
-  const authenticate = pi.authenticate
-  // ... other methods
+  // Use the hook methods
 }
 ```
 
-**Returns:**
-- `PiNetworkClient` instance with all SDK methods
+**Parameters:**
+- `sandbox?: boolean` - Enable sandbox mode (default: false)
+- `allowedOrigins?: string[]` - Allowed origins for security
 
-### useXhiloPiUser
-
-Hook to access user authentication state.
-
-```tsx
-import { useXhiloPiUser } from '@xhilo/pi-sdk/react'
-
-function UserInfo() {
-  const user = useXhiloPiUser()
-  
-  if (user) {
-    return <div>Welcome, {user.username}!</div>
-  }
-  
-  return <div>Please log in</div>
-}
-```
-
-**Returns:**
-- `PiUser | null` - Current user or null if not authenticated
-
-### useXhiloPiReady
-
-Hook to check if the SDK is initialized and ready.
-
-```tsx
-import { useXhiloPiReady } from '@xhilo/pi-sdk/react'
-
-function StatusIndicator() {
-  const isReady = useXhiloPiReady()
-  
-  return (
-    <div>
-      SDK Status: {isReady ? 'Ready' : 'Loading...'}
-    </div>
-  )
-}
-```
-
-**Returns:**
-- `boolean` - True if SDK is ready
+**Enhanced State Management:**
+- `isAuthenticated: boolean` - Whether user is currently authenticated
+- `authenticatedScopes: Scope[]` - Array of granted scopes
+- `hasScope(scope): boolean` - Check if user has specific scope
+- `hasAllScopes(scopes): boolean` - Check if user has all required scopes
+- `missingScopes(requiredScopes): Scope[]` - Get scopes user is missing
+- `isTokenExpired: boolean` - Whether current token has expired
+- `tokenExpiry: number | null` - Timestamp when token expires
+- `reset(): void` - Reset all state and clear localStorage
+- `refreshAuth(additionalScopes?): Promise<PiOperationResult<PiUser>>` - Re-authenticate with additional scopes
 
 ### usePiPayments
 
-Hook for advanced payment processing.
+High-level payment processing with backend integration.
 
 ```tsx
 import { usePiPayments } from '@xhilo/pi-sdk/react'
 
 function PaymentComponent() {
-  const { createPayment, approvePayment, completePayment } = usePiPayments()
+  const { 
+    createAndCompletePayment, 
+    isProcessing, 
+    error, 
+    success, 
+    reset 
+  } = usePiPayments(sandbox?, allowedOrigins?)
   
   const handlePayment = async () => {
-    const payment = await createPayment({
+    const result = await createAndCompletePayment({
+      userId: 'user123',
       amount: 1.0,
-      memo: 'Test payment'
+      memo: 'Test payment',
+      onSuccess: (paymentId) => console.log('Success:', paymentId),
+      onError: (error) => console.error('Error:', error),
+      onCancel: () => console.log('Cancelled')
     })
-    
-    const approved = await approvePayment(payment.identifier)
-    if (approved) {
-      await completePayment(payment.identifier)
-    }
   }
 }
 ```
 
+**Parameters:**
+- `sandbox?: boolean` - Enable sandbox mode (default: false)
+- `allowedOrigins?: string[]` - Allowed origins for security
+
 **Returns:**
-- `createPayment: (params: CreatePaymentParams) => Promise<Payment>`
-- `approvePayment: (identifier: string) => Promise<boolean>`
-- `completePayment: (identifier: string) => Promise<Payment>`
+- `createAndCompletePayment: (options: CreateAndCompletePaymentOptions) => Promise<PiOperationResult<string>>`
+- `isProcessing: boolean` - Whether payment is currently processing
+- `error: string | null` - Current error message
+- `success: boolean` - Whether last payment was successful
+- `reset(): void` - Reset payment state
 
 ### usePiSimplePayments
 
-Hook for simplified payment processing.
+Simplified payment processing without backend integration.
 
 ```tsx
 import { usePiSimplePayments } from '@xhilo/pi-sdk/react'
 
-function SimplePayment() {
-  const { createPayment } = usePiSimplePayments()
+function SimplePaymentComponent() {
+  const { 
+    createPayment, 
+    isProcessing, 
+    error, 
+    success, 
+    reset 
+  } = usePiSimplePayments(sandbox?, allowedOrigins?)
   
   const handlePayment = async () => {
-    const payment = await createPayment({
+    const result = await createPayment({
+      userId: 'user123',
       amount: 1.0,
-      memo: 'Simple payment'
+      itemName: 'Simple payment',
+      onSuccess: (paymentId) => console.log('Success:', paymentId),
+      onError: (error) => console.error('Error:', error),
+      onCancel: () => console.log('Cancelled')
     })
   }
 }
 ```
 
-### useXhiloPiLogs
+**Parameters:**
+- `sandbox?: boolean` - Enable sandbox mode (default: false)
+- `allowedOrigins?: string[]` - Allowed origins for security
 
-Hook to access SDK console logs.
+**Returns:**
+- `createPayment: (options: SimplePaymentOptions) => Promise<PiOperationResult<string>>`
+- `isProcessing: boolean` - Whether payment is currently processing
+- `error: string | null` - Current error message
+- `success: boolean` - Whether last payment was successful
+- `reset(): void` - Reset payment state
+
+### usePiAds
+
+Full ads functionality with backend verification.
 
 ```tsx
-import { useXhiloPiLogs } from '@xhilo/pi-sdk/react'
+import { usePiAds } from '@xhilo/pi-sdk/react'
 
-function DebugPanel() {
-  const logs = useXhiloPiLogs()
+function AdsComponent() {
+  const { 
+    showAd, 
+    verifyRewardedAd, 
+    checkEligibility, 
+    getAdStats,
+    isProcessing,
+    error 
+  } = usePiAds(sandbox?, allowedOrigins?)
+  
+  const handleShowAd = async () => {
+    const result = await showAd('rewarded')
+  }
+}
+```
+
+**Parameters:**
+- `sandbox?: boolean` - Use sandbox environment (default: false)
+- `allowedOrigins?: string[]` - Allowed origins for security
+
+**Returns:**
+- `showAd: (adType: 'interstitial' | 'rewarded') => Promise<PiOperationResult<ShowAdResponse>>`
+- `verifyRewardedAd: (adId: string, rewardAmount?: number, metadata?: Record<string, any>) => Promise<PiOperationResult<AdRewardData>>`
+- `checkEligibility: (adType: 'interstitial' | 'rewarded', maxDailyViews?: number) => Promise<PiOperationResult<AdEligibilityData>>`
+- `getAdStats: () => Promise<PiOperationResult<any>>`
+- `isProcessing: boolean` - Whether ad operation is processing
+- `error: string | null` - Current error message
+
+### usePiAdsSimple
+
+Frontend-only ads display.
+
+```tsx
+import { usePiAdsSimple } from '@xhilo/pi-sdk/react'
+
+function SimpleAdsComponent() {
+  const { showAd, isProcessing, error } = usePiAdsSimple(sandbox?, allowedOrigins?)
+  
+  const handleShowAd = async () => {
+    const result = await showAd('rewarded')
+  }
+}
+```
+
+**Parameters:**
+- `sandbox?: boolean` - Use sandbox environment (default: false)
+- `allowedOrigins?: string[]` - Allowed origins for security
+
+**Returns:**
+- `showAd: (adType: 'interstitial' | 'rewarded') => Promise<PiOperationResult<ShowAdResponse>>`
+- `isProcessing: boolean` - Whether ad operation is processing
+- `error: string | null` - Current error message
+
+## React Components
+
+### PaymentButton
+
+Pre-built payment button with backend integration.
+
+```tsx
+import { PaymentButton } from '@xhilo/pi-sdk/react'
+
+function MyComponent() {
+  return (
+    <PaymentButton
+      userId="user123"
+      amount={5.0}
+      memo="Premium Feature"
+      onSuccess={(paymentId) => console.log('Success:', paymentId)}
+    >
+      Buy Premium
+    </PaymentButton>
+  )
+}
+```
+
+**Props:**
+- `userId: string` - User ID
+- `amount: number` - Payment amount
+- `memo: string` - Payment memo
+- `metadata?: Record<string, any>` - Additional metadata
+- `className?: string` - CSS class
+- `children?: React.ReactNode` - Button content
+- `onSuccess?: (paymentId: string) => void` - Success callback
+- `onError?: (error: string) => void` - Error callback
+- `onCancel?: () => void` - Cancel callback
+
+### PaymentProcessDisplay
+
+Display real-time payment progress.
+
+```tsx
+import { PaymentProcessDisplay } from '@xhilo/pi-sdk/react'
+
+function PaymentComponent() {
+  const [processData, setProcessData] = useState(null)
   
   return (
     <div>
-      {logs.map((log, index) => (
-        <div key={index}>{log.message}</div>
-      ))}
+      {processData && (
+        <PaymentProcessDisplay 
+          processData={processData}
+          showProgress={true}
+          showTimestamp={true}
+        />
+      )}
     </div>
   )
 }
 ```
 
-## Backend Integration
+**Props:**
+- `processData: PaymentProcessData` - Payment process data
+- `className?: string` - CSS class
+- `showProgress?: boolean` - Show progress bar (default: true)
+- `showTimestamp?: boolean` - Show timestamp (default: true)
 
-### PiBackendClient
+### SimplePaymentButton
 
-Server-side client for Pi Network integration.
+Simple payment button for basic use cases.
 
-```javascript
-import { PiBackendClient } from '@xhilo/pi-sdk/backend'
+```tsx
+import { SimplePaymentButton } from '@xhilo/pi-sdk/react'
 
-const piClient = new PiBackendClient({
-  apiKey: process.env.PI_API_KEY,
-  walletPrivateSeed: process.env.PI_WALLET_PRIVATE_SEED,
-  sandbox: process.env.NODE_ENV !== 'production'
-})
-```
-
-**Constructor Options:**
-- `apiKey: string` - Your Pi Network API key
-- `walletPrivateSeed: string` - Your wallet private seed
-- `sandbox?: boolean` - Use sandbox environment (default: false)
-
-### Methods
-
-#### createPayment
-
-Create a new payment.
-
-```javascript
-const payment = await piClient.createPayment({
-  amount: 1.0,
-  memo: 'Test payment',
-  metadata: { userId: '123' }
-})
-```
-
-**Parameters:**
-- `amount: number` - Payment amount in Pi
-- `memo: string` - Payment description
-- `metadata?: object` - Additional payment data
-
-**Returns:**
-- `Promise<Payment>` - Created payment object
-
-#### approvePayment
-
-Approve a payment.
-
-```javascript
-const approved = await piClient.approvePayment(paymentIdentifier)
-```
-
-**Parameters:**
-- `paymentIdentifier: string` - Payment identifier
-
-**Returns:**
-- `Promise<boolean>` - True if approved
-
-#### completePayment
-
-Complete a payment.
-
-```javascript
-const completed = await piClient.completePayment(paymentIdentifier)
-```
-
-**Parameters:**
-- `paymentIdentifier: string` - Payment identifier
-
-**Returns:**
-- `Promise<Payment>` - Completed payment object
-
-#### getPayment
-
-Get payment details.
-
-```javascript
-const payment = await piClient.getPayment(paymentIdentifier)
-```
-
-#### cancelPayment
-
-Cancel a payment.
-
-```javascript
-const cancelled = await piClient.cancelPayment(paymentIdentifier)
-```
-
-## Types
-
-### PiUser
-
-```typescript
-interface PiUser {
-  uid: string
-  username: string
-  walletAddress: string
-  // ... other user properties
+function MyComponent() {
+  return (
+    <SimplePaymentButton
+      userId="user123"
+      amount={2.5}
+      itemName="Digital Download"
+      onSuccess={(paymentId) => console.log('Success:', paymentId)}
+    >
+      Buy Download
+    </SimplePaymentButton>
+  )
 }
 ```
 
-### Payment
+**Props:**
+- `userId: string` - User ID
+- `amount: number` - Payment amount
+- `itemName: string` - Item name
+- `customMetadata?: Record<string, any>` - Custom metadata
+- `className?: string` - CSS class
+- `children?: React.ReactNode` - Button content
+- `onSuccess?: (paymentId: string) => void` - Success callback
+- `onError?: (error: string) => void` - Error callback
+- `onCancel?: () => void` - Cancel callback
+
+## Backend Actions
+
+All backend actions are **async** and require **explicit configuration parameters**.
+
+### App-to-User (A2U) Payments
+
+#### processA2UWithdrawalAction
+
+Process a withdrawal from your app to a user.
 
 ```typescript
-interface Payment {
-  identifier: string
-  amount: number
-  memo: string
-  metadata: object
-  status: 'pending' | 'approved' | 'completed' | 'cancelled'
-  // ... other payment properties
+import { processA2UWithdrawalAction, PiBackendConfig } from '@xhilo/pi-sdk/backend'
+
+const piBackendConfig: PiBackendConfig = {
+  apiKey: process.env.PI_API_KEY!,
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!
+}
+
+const result = await processA2UWithdrawalAction({
+  withdrawalAmount: 10.0,
+  userId: 'user-uid',
+  memo: 'Withdrawal from MyApp',
+  metadata: { withdrawalId: 'wd-123' }
+}, piBackendConfig)
+```
+
+**Parameters:**
+- `args: ProcessA2UWithdrawalArgs` - Withdrawal arguments
+- `config: PiBackendConfig` - Backend configuration
+
+**Returns:**
+- `Promise<ProcessA2UWithdrawalResult>` - Withdrawal result
+
+#### createAndMakeA2UPayment
+
+High-level helper for A2U payments.
+
+```typescript
+import { createAndMakeA2UPayment, PiBackendConfig } from '@xhilo/pi-sdk/backend'
+
+const result = await createAndMakeA2UPayment(
+  'user-uid',
+  10.0,
+  'Premium Feature',
+  piBackendConfig,
+  { customData: 'value' }
+)
+```
+
+**Parameters:**
+- `userId: string` - User ID
+- `amount: number` - Payment amount
+- `memo: string` - Payment memo
+- `config: PiBackendConfig` - Backend configuration
+- `metadata?: Record<string, any>` - Additional metadata
+
+**Returns:**
+- `Promise<ProcessA2UWithdrawalResult>` - Payment result
+
+### User-to-App (U2A) Payments
+
+#### approvePaymentAction
+
+Approve a U2A payment.
+
+```typescript
+import { approvePaymentAction, PiPlatformConfig } from '@xhilo/pi-sdk/backend'
+
+const piPlatformConfig: PiPlatformConfig = {
+  apiKey: process.env.PI_API_KEY!
+}
+
+const result = await approvePaymentAction({
+  paymentId: 'payment-123',
+  userId: 'user-uid'
+}, piPlatformConfig)
+```
+
+**Parameters:**
+- `args: ApprovePaymentArgs` - Approval arguments
+- `config: PiPlatformConfig` - Platform configuration
+
+**Returns:**
+- `Promise<PiOperationResult<PaymentDTO>>` - Approval result
+
+#### completePaymentAction
+
+Complete a U2A payment.
+
+```typescript
+import { completePaymentAction, PiPlatformConfig } from '@xhilo/pi-sdk/backend'
+
+const result = await completePaymentAction({
+  paymentId: 'payment-123',
+  txid: 'transaction-id',
+  userId: 'user-uid'
+}, piPlatformConfig)
+```
+
+**Parameters:**
+- `args: CompletePaymentArgs` - Completion arguments
+- `config: PiPlatformConfig` - Platform configuration
+
+**Returns:**
+- `Promise<PiOperationResult<PaymentDTO>>` - Completion result
+
+### Ads Verification
+
+#### verifyRewardedAdAction
+
+Verify a rewarded ad and process rewards.
+
+```typescript
+import { verifyRewardedAdAction, PiBackendConfig } from '@xhilo/pi-sdk/backend'
+
+const result = await verifyRewardedAdAction({
+  adId: 'ad123',
+  rewardAmount: 0.1,
+  userId: 'user123',
+  metadata: { source: 'mobile' }
+}, piBackendConfig)
+```
+
+**Parameters:**
+- `args: VerifyRewardedAdArgs` - Verification arguments
+- `config: PiBackendConfig` - Backend configuration
+
+**Returns:**
+- `Promise<PiOperationResult<VerifyRewardedAdResult>>` - Verification result
+
+#### getAdEligibilityAction
+
+Check user ad eligibility.
+
+```typescript
+import { getAdEligibilityAction, PiBackendConfig } from '@xhilo/pi-sdk/backend'
+
+const eligibility = await getAdEligibilityAction({
+  userId: 'user123',
+  adType: 'rewarded',
+  maxDailyViews: 5
+}, piBackendConfig)
+```
+
+**Parameters:**
+- `args: GetAdEligibilityArgs` - Eligibility arguments
+- `config: PiBackendConfig` - Backend configuration
+
+**Returns:**
+- `Promise<PiOperationResult<AdEligibilityResult>>` - Eligibility result
+
+#### getUserAdStatsAction
+
+Get user ad statistics.
+
+```typescript
+import { getUserAdStatsAction, PiBackendConfig } from '@xhilo/pi-sdk/backend'
+
+const stats = await getUserAdStatsAction('user123', piBackendConfig)
+```
+
+**Parameters:**
+- `userId: string` - User ID
+- `config: PiBackendConfig` - Backend configuration
+
+**Returns:**
+- `Promise<PiOperationResult<UserAdStatsResult>>` - User stats result
+
+## Configuration Types
+
+### PiBackendConfig
+
+Configuration for A2U payments and ads verification.
+
+```typescript
+interface PiBackendConfig {
+  apiKey: string
+  privateSeed: string
+  baseUrl?: string
 }
 ```
 
-### CreatePaymentParams
+### PiPlatformConfig
+
+Configuration for U2A payments.
 
 ```typescript
-interface CreatePaymentParams {
-  amount: number
-  memo: string
-  metadata?: object
+interface PiPlatformConfig {
+  apiKey: string
+  baseUrl?: string
 }
 ```
+
+## Utility Functions
+
+### getConsoleLogs
+
+Get console logs for debugging.
+
+```typescript
+import { getConsoleLogs } from '@xhilo/pi-sdk/react'
+
+const logs = getConsoleLogs()
+```
+
+**Returns:**
+- `ConsoleLog[]` - Array of console logs
 
 ## Error Handling
 
-All SDK methods can throw errors. Always wrap in try-catch:
+All functions return a consistent result format:
 
-```tsx
-try {
-  const payment = await createPayment({
-    amount: 1.0,
-    memo: 'Test payment'
-  })
-} catch (error) {
-  console.error('Payment failed:', error.message)
+```typescript
+interface PiOperationResult<T = any> {
+  success: boolean
+  data?: T
+  message?: string
 }
 ```
 
-**Common Error Types:**
-- `PiNetworkError` - General Pi Network errors
-- `AuthenticationError` - Authentication failures
-- `PaymentError` - Payment processing errors
-- `NetworkError` - Network connectivity issues
+**Example:**
+```typescript
+const result = await processA2UWithdrawalAction(args, config)
+
+if (result.success) {
+  console.log('Payment processed:', result.data)
+} else {
+  console.error('Payment failed:', result.message)
+}
+```
+
+## TypeScript Support
+
+The package includes complete TypeScript definitions:
+
+```typescript
+import type { 
+  PiOperationResult,
+  PaymentData,
+  PiBackendConfig,
+  PiPlatformConfig,
+  ProcessA2UWithdrawalArgs,
+  ApprovePaymentArgs,
+  CompletePaymentArgs,
+  VerifyRewardedAdArgs,
+  GetAdEligibilityArgs,
+  UserAdStatsResult,
+  AdEligibilityResult,
+  VerifyRewardedAdResult,
+  ProcessA2UWithdrawalResult
+} from '@xhilo/pi-sdk/backend'
+```
+
+---
+
+*For more detailed examples, see the [Real Examples](./REAL_EXAMPLES.md) and [Configuration Guide](./CONFIGURATION_GUIDE.md).*

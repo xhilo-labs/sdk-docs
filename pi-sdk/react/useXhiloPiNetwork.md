@@ -48,12 +48,76 @@ const pi = useXhiloPiNetwork(true);
 const pi = useXhiloPiNetwork(false, ['https://myapp.com']);
 ```
 
+## 🔧 Enhanced State Management
+
+The hook now includes comprehensive state management for authentication, scopes, and tokens:
+
+### **Authentication State**
+```tsx
+const {
+  isAuthenticated,        // Whether user is currently authenticated
+  authenticatedScopes,    // Array of granted scopes
+  user,                   // Current user data
+  isInitialized,          // Whether SDK is initialized
+} = useXhiloPiNetwork();
+```
+
+### **Scope Management**
+```tsx
+const {
+  hasScope,               // Check if user has specific scope
+  hasAllScopes,           // Check if user has all required scopes
+  missingScopes,          // Get scopes user is missing
+  refreshAuth,            // Re-authenticate with additional scopes
+} = useXhiloPiNetwork();
+
+// Check specific scope
+const canPay = hasScope('payments');
+
+// Check multiple scopes
+const hasFullAccess = hasAllScopes(['username', 'payments', 'wallet_address']);
+
+// Get missing scopes
+const missing = missingScopes(['payments', 'wallet_address']);
+
+// Request additional scopes
+await refreshAuth(['wallet_address']);
+```
+
+### **Token Management**
+```tsx
+const {
+  isTokenExpired,         // Whether current token has expired
+  tokenExpiry,            // Timestamp when token expires
+  reset,                  // Reset all state and clear localStorage
+} = useXhiloPiNetwork();
+
+// Check if token is expired
+if (isTokenExpired) {
+  // Handle expired token
+}
+
+// Reset all state
+reset(); // Clears everything and starts fresh
+```
+
 ## 📤 Return Values
 
 ### Core State
 - **`isInitialized`** - `boolean` - Whether the Pi SDK is initialized
 - **`user`** - `PiUser | null` - Current authenticated user
 - **`getConsoleLogs`** - `() => ConsoleLog[]` - Get console logs for debugging
+
+### Enhanced State Management
+- **`isAuthenticated`** - `boolean` - Whether user is currently authenticated
+- **`authenticatedScopes`** - `Scope[]` - Array of granted scopes
+- **`hasScope(scope)`** - `(scope: Scope) => boolean` - Check if user has specific scope
+- **`hasAllScopes(scopes)`** - `(scopes: Scope[]) => boolean` - Check if user has all required scopes
+- **`missingScopes(requiredScopes)`** - `(requiredScopes: Scope[]) => Scope[]` - Get scopes user is missing
+- **`isTokenExpired`** - `boolean` - Whether current token has expired
+- **`tokenExpiry`** - `number | null` - Timestamp when token expires
+- **`reset()`** - `() => void` - Reset all state and clear localStorage
+- **`refreshAuth(additionalScopes?)`** - `(additionalScopes?: Scope[]) => Promise<PiOperationResult<PiUser>>` - Re-authenticate with additional scopes
 
 ### Authentication Methods
 - **`initialize()`** - Initialize the Pi SDK
@@ -97,7 +161,100 @@ const pi = useXhiloPiNetwork(false, ['https://myapp.com']);
 
 ## 📝 Detailed Examples
 
-### 1. Basic Authentication Flow
+### 1. Enhanced State Management Example
+
+```tsx
+import { useXhiloPiNetwork } from '@xhilo/pi-sdk';
+import { useEffect } from 'react';
+
+function EnhancedAuthExample() {
+  const {
+    // Core functionality
+    initialize,
+    authenticate,
+    user,
+    isInitialized,
+    
+    // Enhanced state management
+    isAuthenticated,
+    authenticatedScopes,
+    hasScope,
+    hasAllScopes,
+    missingScopes,
+    isTokenExpired,
+    tokenExpiry,
+    reset,
+    refreshAuth,
+  } = useXhiloPiNetwork();
+
+  // Auto-handle token expiry
+  useEffect(() => {
+    if (isAuthenticated && isTokenExpired) {
+      console.log('Token expired, resetting authentication...');
+      reset();
+    }
+  }, [isAuthenticated, isTokenExpired, reset]);
+
+  // Check user permissions
+  const canMakePayments = hasScope('payments');
+  const canAccessWallet = hasScope('wallet_address');
+  const hasFullAccess = hasAllScopes(['username', 'payments', 'wallet_address']);
+
+  // Get missing scopes
+  const requiredScopes = ['username', 'payments'];
+  const missing = missingScopes(requiredScopes);
+
+  const handleLogin = async () => {
+    const result = await authenticate(['username', 'payments', 'wallet_address'], () => {});
+    if (result.success) {
+      console.log('User authenticated with scopes:', authenticatedScopes);
+    }
+  };
+
+  const handleRequestAdditionalScopes = async () => {
+    if (missing.length > 0) {
+      const result = await refreshAuth(missing);
+      if (result.success) {
+        console.log('Additional scopes granted!');
+      }
+    }
+  };
+
+  const handleReset = () => {
+    reset(); // Clears everything and starts fresh
+  };
+
+  return (
+    <div>
+      <h3>Authentication Status</h3>
+      <p>Authenticated: {isAuthenticated ? 'Yes' : 'No'}</p>
+      <p>Scopes: {authenticatedScopes.join(', ')}</p>
+      <p>Token Expired: {isTokenExpired ? 'Yes' : 'No'}</p>
+      
+      <h3>Permissions</h3>
+      <p>Can Make Payments: {canMakePayments ? 'Yes' : 'No'}</p>
+      <p>Can Access Wallet: {canAccessWallet ? 'Yes' : 'No'}</p>
+      <p>Has Full Access: {hasFullAccess ? 'Yes' : 'No'}</p>
+      
+      {missing.length > 0 && (
+        <div>
+          <p>Missing Scopes: {missing.join(', ')}</p>
+          <button onClick={handleRequestAdditionalScopes}>
+            Request Additional Scopes
+          </button>
+        </div>
+      )}
+      
+      <div>
+        <button onClick={handleLogin}>Login</button>
+        <button onClick={handleReset}>Reset All</button>
+      </div>
+    </div>
+  );
+}
+```
+
+### 2. Basic Authentication Flow
 
 ```tsx
 import { useXhiloPiNetwork } from '@xhilo/pi-sdk';

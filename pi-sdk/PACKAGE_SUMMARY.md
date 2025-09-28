@@ -12,7 +12,6 @@ pi-sdk/
 │   ├── PiNetworkTypes.ts         # TypeScript type definitions
 │   ├── PiNetworkClient.ts        # Core Pi Network client
 │   ├── useXhiloPiNetwork.ts      # React hook
-│   ├── XhiloPiProvider.tsx       # React context provider
 │   ├── index.ts                  # Main exports
 │   └── __tests__/                # Test files
 ├── dist/                         # Built package (generated)
@@ -44,9 +43,9 @@ pi-sdk/
 - ✅ **Debug Logging**: Built-in console log capture system
 
 ### React Integration
-- ✅ **useXhiloPiNetwork Hook**: Main React hook for SDK functionality
-- ✅ **XhiloPiProvider**: Context provider for app-wide state management
-- ✅ **Additional Hooks**: Specialized hooks for logs, user, and ready state
+- ✅ **useXhiloPiNetwork Hook**: Main React hook for SDK functionality with enhanced state management
+- ✅ **Additional Hooks**: Specialized hooks for payments, ads, and simple payments
+- ✅ **Pre-built Components**: PaymentButton, SimplePaymentButton, PaymentProcessDisplay
 - ✅ **TypeScript Support**: Full type definitions and IntelliSense
 
 ### Developer Experience
@@ -73,18 +72,23 @@ npm install @xhilo/pi-sdk
 
 ### Basic Usage
 ```tsx
-import { XhiloPiProvider, useXhiloPiContext } from '@xhilo/pi-sdk';
-
-function App() {
-  return (
-    <XhiloPiProvider sandbox={false}>
-      <MyComponent />
-    </XhiloPiProvider>
-  );
-}
+import { useXhiloPiNetwork } from '@xhilo/pi-sdk/react';
 
 function MyComponent() {
-  const { user, authenticate, createPayment } = useXhiloPiContext();
+  const { 
+    initialize, 
+    authenticate, 
+    user, 
+    isAuthenticated,
+    hasScope,
+    createPayment 
+  } = useXhiloPiNetwork();
+  
+  useEffect(() => {
+    if (!isInitialized) {
+      initialize();
+    }
+  }, [isInitialized, initialize]);
   
   // Use SDK methods...
 }

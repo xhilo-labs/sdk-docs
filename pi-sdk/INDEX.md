@@ -24,17 +24,16 @@ npm install @xhilo/pi-sdk --template -nextjs
 ## 📦 What's Included
 
 ### React Components
-- **XhiloPiProvider** - Context provider for Pi Network integration
-- **PaymentButton** - Ready-to-use payment components
+- **PaymentButton** - Ready-to-use payment components with backend integration
 - **SimplePaymentButton** - Simplified payment flow
 - **PaymentProcessDisplay** - Payment progress visualization
 
 ### React Hooks
-- **useXhiloPi** - Main SDK hook
-- **useXhiloPiUser** - User authentication state
-- **useXhiloPiReady** - SDK initialization status
-- **usePiPayments** - Payment processing
-- **usePiSimplePayments** - Simplified payments
+- **useXhiloPiNetwork** - Main SDK hook with enhanced state management
+- **usePiPayments** - High-level payment processing with backend integration
+- **usePiSimplePayments** - Simplified payments without backend
+- **usePiAds** - Full ads functionality with backend verification
+- **usePiAdsSimple** - Frontend-only ads display
 
 ### Backend Integration
 - **PiBackendClient** - Server-side Pi Network integration

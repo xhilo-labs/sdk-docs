@@ -5,25 +5,126 @@ title: API Reference
 
 # API Reference
 
-Complete API documentation for the Pi SDK.
+Complete API documentation for the Pi SDK with enhanced state management.
 
-## React Components
+## React Hooks
 
-### XhiloPiProvider
+### useXhiloPiNetwork
 
-Context provider that wraps your React application to provide Pi Network functionality.
+The main hook for Pi Network integration with enhanced state management.
 
 ```tsx
-import { XhiloPiProvider } from '@xhilo/pi-sdk/react'
+import { useXhiloPiNetwork } from '@xhilo/pi-sdk/react'
 
-<XhiloPiProvider>
-  <App />
-</XhiloPiProvider>
+const {
+  // Core functionality
+  initialize,
+  authenticate,
+  user,
+  isInitialized,
+  
+  // Enhanced state management
+  isAuthenticated,
+  authenticatedScopes,
+  hasScope,
+  hasAllScopes,
+  missingScopes,
+  isTokenExpired,
+  tokenExpiry,
+  reset,
+  refreshAuth,
+} = useXhiloPiNetwork(sandbox?, allowedOrigins?)
 ```
 
-**Props:**
-- `children: React.ReactNode` - Your app components
-- `config?: PiConfig` - Optional configuration
+**Parameters:**
+- `sandbox?: boolean` - Enable sandbox mode (default: false)
+- `allowedOrigins?: string[]` - Allowed origins for security
+
+**Enhanced State Management:**
+- `isAuthenticated: boolean` - Whether user is currently authenticated
+- `authenticatedScopes: Scope[]` - Array of granted scopes
+- `hasScope(scope): boolean` - Check if user has specific scope
+- `hasAllScopes(scopes): boolean` - Check if user has all required scopes
+- `missingScopes(requiredScopes): Scope[]` - Get scopes user is missing
+- `isTokenExpired: boolean` - Whether current token has expired
+- `tokenExpiry: number | null` - Timestamp when token expires
+- `reset(): void` - Reset all state and clear localStorage
+- `refreshAuth(additionalScopes?): Promise<PiOperationResult<PiUser>>` - Re-authenticate with additional scopes
+
+### usePiPayments
+
+High-level payment processing with backend integration.
+
+```tsx
+import { usePiPayments } from '@xhilo/pi-sdk/react'
+
+const {
+  createAndCompletePayment,
+  isProcessing,
+  error,
+  success,
+  reset
+} = usePiPayments(sandbox?, allowedOrigins?)
+```
+
+**Parameters:**
+- `sandbox?: boolean` - Enable sandbox mode (default: false)
+- `allowedOrigins?: string[]` - Allowed origins for security
+
+**Return Values:**
+- `createAndCompletePayment(options): Promise<PiOperationResult<string>>` - Create and complete payment
+- `isProcessing: boolean` - Whether payment is currently processing
+- `error: string | null` - Current error message
+- `success: boolean` - Whether last operation was successful
+- `reset(): void` - Reset payment state
+
+### usePiSimplePayments
+
+Simplified payment processing without backend integration.
+
+```tsx
+import { usePiSimplePayments } from '@xhilo/pi-sdk/react'
+
+const {
+  createPayment,
+  isProcessing,
+  error,
+  success,
+  reset
+} = usePiSimplePayments(sandbox?, allowedOrigins?)
+```
+
+### usePiAds
+
+Full ads functionality with backend verification.
+
+```tsx
+import { usePiAds } from '@xhilo/pi-sdk/react'
+
+const {
+  showAd,
+  isAdReady,
+  requestAd,
+  checkEligibility,
+  getStats
+} = usePiAds(sandbox?, allowedOrigins?)
+```
+
+### usePiAdsSimple
+
+Frontend-only ads display.
+
+```tsx
+import { usePiAdsSimple } from '@xhilo/pi-sdk/react'
+
+const {
+  showAd,
+  isAdReady,
+  requestAd
+} = usePiAdsSimple(sandbox?, allowedOrigins?)
+```
+
+## React Components
 
 ### PaymentButton
 

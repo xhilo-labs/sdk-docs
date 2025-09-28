@@ -22,14 +22,23 @@ npm install @xhilo/pi-sdk
 ### 2. Basic Setup
 
 ```typescript
-import { XhiloPiProvider, usePiPayments, usePiAds } from '@xhilo/pi-sdk';
+import { useXhiloPiNetwork, usePiPayments, usePiAds } from '@xhilo/pi-sdk/react';
 
 function App() {
-  return (
-    <XhiloPiProvider>
-      <YourApp />
-    </XhiloPiProvider>
-  );
+  const { initialize, authenticate, user, isInitialized } = useXhiloPiNetwork();
+  
+  // Handle authentication and initialization
+  useEffect(() => {
+    if (!isInitialized) {
+      initialize();
+    }
+  }, [isInitialized, initialize]);
+
+  if (!user) {
+    return <LoginScreen onLogin={authenticate} />;
+  }
+
+  return <YourApp user={user} />;
 }
 ```
 
@@ -53,34 +62,31 @@ U2A payments allow users to pay your app for services, products, or features.
 #### Frontend Implementation
 
 ```typescript
-import { usePiPayments } from '@xhilo/pi-sdk';
+import { usePiPayments } from '@xhilo/pi-sdk/react';
 
 function PaymentButton() {
-  const { createPayment, approvePayment, completePayment, isProcessing } = usePiPayments();
+  const { createAndCompletePayment, isProcessing, error, success } = usePiPayments();
 
   const handlePayment = async () => {
     try {
-      // 1. Create payment
-      const payment = await createPayment({
+      const result = await createAndCompletePayment({
+        userId: 'user123',
         amount: 1.0,
         memo: 'Premium feature access',
-        metadata: { feature: 'premium' }
+        metadata: { feature: 'premium' },
+        onSuccess: (paymentId) => {
+          console.log('Payment completed successfully:', paymentId);
+        },
+        onError: (error) => {
+          console.error('Payment failed:', error);
+        },
+        onCancel: () => {
+          console.log('Payment cancelled by user');
+        }
       });
 
-      if (payment.success) {
-        console.log('Payment created:', payment.data);
-        
-        // 2. Approve payment (user confirms in Pi Browser)
-        const approval = await approvePayment(payment.data.identifier);
-        
-        if (approval.success) {
-          // 3. Complete payment (backend processes)
-          const completion = await completePayment(payment.data.identifier);
-          
-          if (completion.success) {
-            console.log('Payment completed successfully!');
-          }
-        }
+      if (result.success) {
+        console.log('Payment initiated:', result.data);
       }
     } catch (error) {
       console.error('Payment failed:', error);
@@ -99,21 +105,23 @@ function PaymentButton() {
 
 ```typescript
 // pages/api/payments/approve.ts
-import { approvePaymentAction } from '@xhilo/pi-sdk/backend';
+import { approvePaymentAction, PiPlatformConfig } from '@xhilo/pi-sdk/backend';
+
+const piPlatformConfig: PiPlatformConfig = {
+  apiKey: process.env.PI_API_KEY!
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { paymentId } = req.body;
-  const accessToken = req.headers.authorization?.replace('Bearer ', '');
+  const { paymentId, userId } = req.body;
 
   try {
     const result = await approvePaymentAction(
-      { paymentId },
-      undefined, // config
-      accessToken
+      { paymentId, userId },
+      piPlatformConfig
     );
 
     if (result.success) {
@@ -138,7 +146,12 @@ A2U payments allow your app to pay users (rewards, refunds, etc.).
 
 ```typescript
 // pages/api/payments/create-reward.ts
-import { createPaymentAction, submitPaymentAction } from '@xhilo/pi-sdk/backend';
+import { createAndMakeA2UPayment, PiBackendConfig } from '@xhilo/pi-sdk/backend';
+
+const piBackendConfig: PiBackendConfig = {
+  apiKey: process.env.PI_API_KEY!,
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -148,35 +161,22 @@ export default async function handler(req, res) {
   const { userId, amount, memo } = req.body;
 
   try {
-    // 1. Create payment
-    const createResult = await createPaymentAction({
+    const result = await createAndMakeA2UPayment(
+      userId,
       amount,
       memo,
-      metadata: { type: 'reward' },
-      uid: userId
-    });
+      piBackendConfig,
+      { type: 'reward' }
+    );
 
-    if (!createResult.success) {
-      return res.status(400).json(createResult);
-    }
-
-    // 2. Submit payment
-    const submitResult = await submitPaymentAction({
-      paymentId: createResult.data.identifier
-    });
-
-    if (submitResult.success) {
+    if (result.success) {
       res.status(200).json({
         success: true,
         message: 'Reward payment created and submitted',
-        data: {
-          paymentId: createResult.data.identifier,
-          amount,
-          status: 'submitted'
-        }
+        data: result.data
       });
     } else {
-      res.status(400).json(submitResult);
+      res.status(400).json(result);
     }
   } catch (error) {
     res.status(500).json({ 
@@ -194,7 +194,7 @@ export default async function handler(req, res) {
 Perfect for basic ad display without rewards.
 
 ```typescript
-import { usePiAdsSimple } from '@xhilo/pi-sdk';
+import { usePiAdsSimple } from '@xhilo/pi-sdk/react';
 
 function SimpleAdButton() {
   const { showAd, isAdReady, isProcessing, error } = usePiAdsSimple();
@@ -235,7 +235,7 @@ function SimpleAdButton() {
 Includes reward processing and ad verification.
 
 ```typescript
-import { usePiAds } from '@xhilo/pi-sdk';
+import { usePiAds } from '@xhilo/pi-sdk/react';
 
 function FullAdButton() {
   const { 
@@ -292,7 +292,12 @@ function FullAdButton() {
 
 ```typescript
 // pages/api/ads/verify-rewarded.ts
-import { verifyRewardedAdAction } from '@xhilo/pi-sdk/backend';
+import { verifyRewardedAdAction, PiBackendConfig } from '@xhilo/pi-sdk/backend';
+
+const piBackendConfig: PiBackendConfig = {
+  apiKey: process.env.PI_API_KEY!,
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -300,13 +305,11 @@ export default async function handler(req, res) {
   }
 
   const { adId, userId, rewardAmount, metadata } = req.body;
-  const accessToken = req.headers.authorization?.replace('Bearer ', '');
 
   try {
     const result = await verifyRewardedAdAction(
       { adId, userId, rewardAmount, metadata },
-      undefined, // config
-      accessToken
+      piBackendConfig
     );
 
     if (result.success) {
@@ -328,29 +331,28 @@ export default async function handler(req, res) {
 ### Custom Payment Callbacks
 
 ```typescript
-import { usePiPayments } from '@xhilo/pi-sdk';
+import { usePiPayments } from '@xhilo/pi-sdk/react';
 
 function AdvancedPaymentButton() {
-  const { createPayment } = usePiPayments();
+  const { createAndCompletePayment } = usePiPayments();
 
   const handlePayment = async () => {
-    const payment = await createPayment({
+    const result = await createAndCompletePayment({
+      userId: 'user123',
       amount: 5.0,
       memo: 'Premium subscription',
       metadata: { plan: 'premium', duration: 'monthly' },
-      callbacks: {
-        onReadyForServerApproval: (paymentId) => {
-          console.log('Payment ready for approval:', paymentId);
-          // Custom logic before approval
-        },
-        onCancel: (paymentId) => {
-          console.log('Payment cancelled:', paymentId);
-          // Handle cancellation
-        },
-        onError: (error, payment) => {
-          console.error('Payment error:', error, payment);
-          // Handle errors
-        }
+      onSuccess: (paymentId) => {
+        console.log('Payment completed successfully:', paymentId);
+      },
+      onError: (error) => {
+        console.error('Payment error:', error);
+      },
+      onCancel: () => {
+        console.log('Payment cancelled by user');
+      },
+      onProcessUpdate: (processData) => {
+        console.log('Payment process update:', processData);
       }
     });
   };
@@ -363,75 +365,61 @@ function AdvancedPaymentButton() {
 
 ```typescript
 // Backend: Custom ads implementation
-import { verifyRewardedAdAction } from '@xhilo/pi-sdk/backend';
+import { verifyRewardedAdAction, PiBackendConfig } from '@xhilo/pi-sdk/backend';
 
-const customAdsFunctions = {
-  checkUserAdEligibility: async (userId, adType) => {
-    // Your custom eligibility logic
-    const user = await getUserFromDatabase(userId);
-    const todayViews = await getTodayAdViews(userId, adType);
-    
-    return {
-      eligible: todayViews < user.dailyAdLimit,
-      message: todayViews < user.dailyAdLimit 
-        ? 'User is eligible' 
-        : 'Daily ad limit reached'
-    };
-  },
-  
-  logAdCompletion: async (userId, adId, adType, rewardAmount, metadata, adStatus) => {
-    // Your custom logging logic
-    await logToAnalytics({
-      userId,
-      adId,
-      adType,
-      rewardAmount,
-      timestamp: new Date(),
-      adStatus
-    });
-  }
+const piBackendConfig: PiBackendConfig = {
+  apiKey: process.env.PI_API_KEY!,
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!
 };
 
-// Use custom functions
+// Use the action with proper configuration
 const result = await verifyRewardedAdAction(
-  { adId, userId, rewardAmount, metadata },
-  undefined,
-  customAdsFunctions
+  { 
+    adId: 'ad123',
+    userId: 'user123', 
+    rewardAmount: 0.1, 
+    metadata: { source: 'mobile' } 
+  },
+  piBackendConfig
 );
 ```
 
 ### Error Handling
 
 ```typescript
-import { usePiPayments, usePiAds } from '@xhilo/pi-sdk';
+import { usePiPayments, usePiAds } from '@xhilo/pi-sdk/react';
 
 function ErrorHandlingExample() {
-  const { createPayment } = usePiPayments();
+  const { createAndCompletePayment } = usePiPayments();
   const { showAd } = usePiAds();
 
   const handlePayment = async () => {
     try {
-      const result = await createPayment({
+      const result = await createAndCompletePayment({
+        userId: 'user123',
         amount: 1.0,
-        memo: 'Test payment'
+        memo: 'Test payment',
+        onError: (error) => {
+          // Handle specific error types
+          switch (error) {
+            case 'User not authenticated':
+              // Redirect to login
+              break;
+            case 'Insufficient balance':
+              // Show balance error
+              break;
+            case 'Payment creation failed':
+              // Retry or show error
+              break;
+            default:
+              // Generic error handling
+              console.error('Payment failed:', error);
+          }
+        }
       });
 
       if (!result.success) {
-        // Handle specific error types
-        switch (result.message) {
-          case 'User not authenticated':
-            // Redirect to login
-            break;
-          case 'Insufficient balance':
-            // Show balance error
-            break;
-          case 'Payment creation failed':
-            // Retry or show error
-            break;
-          default:
-            // Generic error handling
-            console.error('Payment failed:', result.message);
-        }
+        console.error('Payment failed:', result.message);
       }
     } catch (error) {
       console.error('Unexpected error:', error);
@@ -504,24 +492,35 @@ export default async function handler(req, res) {
 #### 1. "User not authenticated" Error
 ```typescript
 // Check if user is properly authenticated
-const { user, isAuthenticated } = useXhiloPiNetwork();
+const { user, isAuthenticated, hasScope } = useXhiloPiNetwork();
 
 if (!isAuthenticated) {
   console.log('User not authenticated, redirecting to login');
   // Redirect to Pi Browser login
 }
+
+// Check if user has required scopes
+if (!hasScope('payments')) {
+  console.log('User missing payments scope');
+  // Request additional scopes
+}
 ```
 
 #### 2. "Payment creation failed" Error
 ```typescript
-// Check environment variables
-if (!process.env.REACT_APP_PI_APP_ID) {
-  console.error('REACT_APP_PI_APP_ID not set');
+// Check if user is authenticated and has required scopes
+const { user, isAuthenticated, hasScope } = useXhiloPiNetwork();
+
+if (!isAuthenticated) {
+  console.error('User not authenticated');
 }
 
-// Check user balance
-const { user } = useXhiloPiNetwork();
-console.log('User balance:', user.balance);
+if (!hasScope('payments')) {
+  console.error('User missing payments scope');
+}
+
+// Check user data
+console.log('User data:', user);
 ```
 
 #### 3. "Ad not ready" Error
@@ -531,8 +530,12 @@ const { isAdReady } = usePiAds();
 
 const checkAd = async () => {
   const ready = await isAdReady('rewarded');
-  console.log('Ad ready:', ready.data.isReady);
-  console.log('Ad reason:', ready.data.reason);
+  if (ready.success) {
+    console.log('Ad ready:', ready.data.isReady);
+    console.log('Ad reason:', ready.data.reason);
+  } else {
+    console.error('Ad check failed:', ready.message);
+  }
 };
 ```
 
@@ -546,22 +549,32 @@ if (!process.env.PI_API_KEY) {
 if (!process.env.PI_WALLET_PRIVATE_SEED) {
   console.error('PI_WALLET_PRIVATE_SEED not set in backend');
 }
+
+// Ensure proper configuration is passed to actions
+const piBackendConfig: PiBackendConfig = {
+  apiKey: process.env.PI_API_KEY!,
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!
+};
 ```
 
 ### Debug Mode
 
 ```typescript
 // Enable debug logging
-const { createPayment } = usePiPayments();
+const { createAndCompletePayment } = usePiPayments();
 
 const handlePayment = async () => {
   // Enable debug mode
   console.log('Debug mode enabled');
   
-  const result = await createPayment({
+  const result = await createAndCompletePayment({
+    userId: 'user123',
     amount: 1.0,
     memo: 'Debug payment',
-    metadata: { debug: true }
+    metadata: { debug: true },
+    onSuccess: (paymentId) => console.log('Payment success:', paymentId),
+    onError: (error) => console.error('Payment error:', error),
+    onCancel: () => console.log('Payment cancelled')
   });
   
   console.log('Payment result:', result);

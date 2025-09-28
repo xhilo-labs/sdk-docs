@@ -15,7 +15,7 @@ import {
   PaymentButton, 
   PaymentProcessDisplay,
   SimplePaymentButton 
-} from '@xhilo/pi-sdk';
+} from '@xhilo/pi-sdk/react';
 
 function MyComponent() {
   return (

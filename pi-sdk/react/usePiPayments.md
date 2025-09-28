@@ -9,7 +9,7 @@ High-level hook for **User-to-App (U2A) payments** with backend integration, rea
 ## 🚀 Basic Usage
 
 ```tsx
-import { usePiPayments, PaymentProcessDisplay } from '@xhilo/pi-sdk';
+import { usePiPayments, PaymentProcessDisplay } from '@xhilo/pi-sdk/react';
 
 function PaymentComponent() {
   const { 
@@ -109,7 +109,7 @@ interface PaymentProcessData {
 ### 1. Basic Payment with Progress Display
 
 ```tsx
-import { usePiPayments, PaymentProcessDisplay } from '@xhilo/pi-sdk';
+import { usePiPayments, PaymentProcessDisplay } from '@xhilo/pi-sdk/react';
 
 function BasicPayment() {
   const { createAndCompletePayment, isProcessing, error } = usePiPayments();

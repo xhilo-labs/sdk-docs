@@ -1,95 +1,140 @@
 # API Reference
 
-Complete API documentation for the Pi SDK.
+Complete API documentation for the Pi SDK with enhanced state management.
 
 ## React Hooks
 
 ### useXhiloPiNetwork
 
-Main hook for Pi Network integration with robust state management.
+Main hook for Pi Network integration with enhanced state management.
 
 ```tsx
 import { useXhiloPiNetwork } from '@xhilo/pi-sdk/react'
 
 function MyComponent() {
   const {
-    createPayment,
+    // Core functionality
+    initialize,
+    authenticate,
     user,
     isInitialized,
+    
+    // Enhanced state management
     isAuthenticated,
-    userId,
+    authenticatedScopes,
+    hasScope,
+    hasAllScopes,
+    missingScopes,
+    isTokenExpired,
+    tokenExpiry,
+    reset,
+    refreshAuth,
+    
+    // Payment methods
+    createPayment,
+    createAndMakePayment,
+    
+    // Other methods
     getConsoleLogs
-  } = useXhiloPiNetwork()
+  } = useXhiloPiNetwork(sandbox?, allowedOrigins?)
   
   // Use the hook methods
 }
 ```
 
 **Parameters:**
-- None (uses global Pi Network state)
+- `sandbox?: boolean` - Enable sandbox mode (default: false)
+- `allowedOrigins?: string[]` - Allowed origins for security
 
-**Returns:**
-- `createPayment: (paymentData: PaymentData) => Promise<PiOperationResult<string>>` - Create a payment
-- `user: PiUser | null` - Current user information
-- `isInitialized: boolean` - Whether Pi Network is initialized
-- `isAuthenticated: boolean` - Whether user is authenticated
-- `userId: string | null` - Current user ID
-- `getConsoleLogs: () => ConsoleLog[]` - Get console logs for debugging
+**Enhanced State Management:**
+- `isAuthenticated: boolean` - Whether user is currently authenticated
+- `authenticatedScopes: Scope[]` - Array of granted scopes
+- `hasScope(scope): boolean` - Check if user has specific scope
+- `hasAllScopes(scopes): boolean` - Check if user has all required scopes
+- `missingScopes(requiredScopes): Scope[]` - Get scopes user is missing
+- `isTokenExpired: boolean` - Whether current token has expired
+- `tokenExpiry: number | null` - Timestamp when token expires
+- `reset(): void` - Reset all state and clear localStorage
+- `refreshAuth(additionalScopes?): Promise<PiOperationResult<PiUser>>` - Re-authenticate with additional scopes
 
 ### usePiPayments
 
-Advanced payment hook with backend integration.
+High-level payment processing with backend integration.
 
 ```tsx
 import { usePiPayments } from '@xhilo/pi-sdk/react'
 
 function PaymentComponent() {
-  const { createPayment, isProcessing, error, success } = usePiPayments({
-    baseUrl: 'https://your-api.com'
-  })
+  const { 
+    createAndCompletePayment, 
+    isProcessing, 
+    error, 
+    success, 
+    reset 
+  } = usePiPayments(sandbox?, allowedOrigins?)
   
   const handlePayment = async () => {
-    const result = await createPayment({
+    const result = await createAndCompletePayment({
+      userId: 'user123',
       amount: 1.0,
-      memo: 'Test payment'
+      memo: 'Test payment',
+      onSuccess: (paymentId) => console.log('Success:', paymentId),
+      onError: (error) => console.error('Error:', error),
+      onCancel: () => console.log('Cancelled')
     })
   }
 }
 ```
 
 **Parameters:**
-- `options?: { baseUrl?: string; onSuccess?: (paymentId: string) => void; onError?: (error: string) => void; onCancel?: () => void; onProcessUpdate?: (processData: PaymentProcessData) => void }`
+- `sandbox?: boolean` - Enable sandbox mode (default: false)
+- `allowedOrigins?: string[]` - Allowed origins for security
 
 **Returns:**
-- `createPayment: (options: CreateAndCompletePaymentOptions) => Promise<PiOperationResult<string>>`
+- `createAndCompletePayment: (options: CreateAndCompletePaymentOptions) => Promise<PiOperationResult<string>>`
 - `isProcessing: boolean` - Whether payment is currently processing
 - `error: string | null` - Current error message
 - `success: boolean` - Whether last payment was successful
+- `reset(): void` - Reset payment state
 
 ### usePiSimplePayments
 
-Simplified payment hook for easy payments.
+Simplified payment processing without backend integration.
 
 ```tsx
 import { usePiSimplePayments } from '@xhilo/pi-sdk/react'
 
 function SimplePaymentComponent() {
-  const { createPayment } = usePiSimplePayments()
+  const { 
+    createPayment, 
+    isProcessing, 
+    error, 
+    success, 
+    reset 
+  } = usePiSimplePayments(sandbox?, allowedOrigins?)
   
   const handlePayment = async () => {
     const result = await createPayment({
       amount: 1.0,
-      memo: 'Simple payment'
+      memo: 'Simple payment',
+      onSuccess: (paymentId) => console.log('Success:', paymentId),
+      onError: (error) => console.error('Error:', error),
+      onCancel: () => console.log('Cancelled')
     })
   }
 }
 ```
 
 **Parameters:**
-- None
+- `sandbox?: boolean` - Enable sandbox mode (default: false)
+- `allowedOrigins?: string[]` - Allowed origins for security
 
 **Returns:**
 - `createPayment: (options: SimplePaymentOptions) => Promise<PiOperationResult<string>>`
+- `isProcessing: boolean` - Whether payment is currently processing
+- `error: string | null` - Current error message
+- `success: boolean` - Whether last payment was successful
+- `reset(): void` - Reset payment state
 
 ### usePiAds
 

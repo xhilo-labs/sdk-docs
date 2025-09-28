@@ -18,7 +18,7 @@ Common issues and solutions for the Pi SDK.
 ```tsx
 'use client'
 
-import { useXhiloPiUser } from '@xhilo/pi-sdk/react'
+import { useXhiloPiNetwork } from '@xhilo/pi-sdk/react'
 
 function MyComponent() {
   const user = useXhiloPiUser()
@@ -66,30 +66,33 @@ NEXT_PUBLIC_PI_SANDBOX=true
 
 2. **Initialize SDK properly**:
 ```tsx
-import { XhiloPiProvider } from '@xhilo/pi-sdk/react'
+import { useXhiloPiNetwork } from '@xhilo/pi-sdk/react'
 
 function App() {
-  return (
-    <XhiloPiProvider>
-      <YourComponents />
-    </XhiloPiProvider>
-  )
+  const { initialize, authenticate, user, isInitialized } = useXhiloPiNetwork()
+  
+  useEffect(() => {
+    if (!isInitialized) {
+      initialize()
+    }
+  }, [isInitialized, initialize])
+  
+  return <YourComponents />
 }
 ```
 
 3. **Check user state**:
 ```tsx
-import { useXhiloPiUser, useXhiloPiReady } from '@xhilo/pi-sdk/react'
+import { useXhiloPiNetwork } from '@xhilo/pi-sdk/react'
 
 function UserComponent() {
-  const user = useXhiloPiUser()
-  const isReady = useXhiloPiReady()
+  const { user, isInitialized, isAuthenticated } = useXhiloPiNetwork()
   
-  if (!isReady) {
+  if (!isInitialized) {
     return <div>Loading SDK...</div>
   }
   
-  if (!user) {
+  if (!isAuthenticated || !user) {
     return <div>Please log in</div>
   }
   
@@ -137,7 +140,7 @@ try {
 1. **Check imports**: Ensure correct import paths:
 ```tsx
 // Correct
-import { useXhiloPiUser } from '@xhilo/pi-sdk/react'
+import { useXhiloPiNetwork } from '@xhilo/pi-sdk/react'
 
 // Incorrect
 import { useXhiloPiUser } from '@xhilo/pi-sdk'

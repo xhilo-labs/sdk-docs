@@ -9,13 +9,13 @@ Simple hook for **basic payments** without backend integration. Perfect for prot
 ## 🚀 Basic Usage
 
 ```tsx
-import { usePiSimplePayments } from '@xhilo/pi-sdk';
+import { usePiSimplePayments } from '@xhilo/pi-sdk/react';
 
 function SimplePayment() {
-  const { createSimplePayment, isInitialized } = usePiSimplePayments();
+  const { createPayment, isProcessing, error, success, reset } = usePiSimplePayments();
 
   const handlePayment = async () => {
-    const result = await createSimplePayment(
+    const result = await createPayment(
       {
         userId: 'user123',
         amount: 1.0,
@@ -30,8 +30,8 @@ function SimplePayment() {
   };
 
   return (
-    <button onClick={handlePayment} disabled={!isInitialized}>
-      Buy Premium Feature
+    <button onClick={handlePayment} disabled={isProcessing}>
+      {isProcessing ? 'Processing...' : 'Buy Premium Feature'}
     </button>
   );
 }
@@ -87,7 +87,7 @@ interface Callbacks {
 ### 1. Basic Payment
 
 ```tsx
-import { usePiSimplePayments } from '@xhilo/pi-sdk';
+import { usePiSimplePayments } from '@xhilo/pi-sdk/react';
 
 function BasicPayment() {
   const { createSimplePayment, isInitialized } = usePiSimplePayments();

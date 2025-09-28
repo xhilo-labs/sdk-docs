@@ -9,20 +9,16 @@ A simplified payment button component for basic payment operations without compl
 ## 🚀 Basic Usage
 
 ```tsx
-import { SimplePaymentButton, usePiSimplePayments } from '@xhilo/pi-sdk';
+import { SimplePaymentButton, usePiSimplePayments } from '@xhilo/pi-sdk/react';
 
 function SimplePayment() {
-  const { createSimplePayment } = usePiSimplePayments();
-
   return (
     <SimplePaymentButton
-      onPayment={() => createSimplePayment({
-        userId: 'user123',
-        amount: 2.0,
-        itemName: 'Simple Purchase'
-      })}
+      userId="user123"
       amount={2.0}
       itemName="Simple Purchase"
+      onSuccess={(paymentId) => console.log('Success:', paymentId)}
+      onError={(error) => console.error('Error:', error)}
     >
       Buy Now
     </SimplePaymentButton>
@@ -36,18 +32,15 @@ function SimplePayment() {
 
 ```tsx
 interface SimplePaymentButtonProps {
-  onPayment: () => Promise<PiOperationResult<string>>; // Required: Payment function
-  amount: number;                                      // Required: Payment amount
-  itemName: string;                                    // Required: Item name
-  children: React.ReactNode;                           // Required: Button content
-  disabled?: boolean;                                  // Optional: Disable button
-  loading?: boolean;                                   // Optional: Show loading state
-  variant?: 'primary' | 'secondary' | 'success' | 'danger'; // Optional: Button variant
-  size?: 'small' | 'medium' | 'large';                // Optional: Button size
-  className?: string;                                  // Optional: CSS class
-  style?: React.CSSProperties;                        // Optional: Inline styles
-  showAmount?: boolean;                                // Optional: Show amount in button (default: true)
-  showItemName?: boolean;                              // Optional: Show item name in button (default: false)
+  userId: string;                    // Required: User ID
+  amount: number;                    // Required: Payment amount
+  itemName: string;                  // Required: Item name
+  customMetadata?: Record<string, any>; // Optional: Additional metadata
+  className?: string;                // Optional: CSS class
+  children?: React.ReactNode;        // Optional: Button content
+  onSuccess?: (paymentId: string) => void;  // Optional: Success callback
+  onError?: (error: string) => void;        // Optional: Error callback
+  onCancel?: () => void;                    // Optional: Cancel callback
 }
 ```
 
@@ -71,7 +64,7 @@ interface SimplePaymentButtonProps {
 ### 1. Basic Simple Payment
 
 ```tsx
-import { SimplePaymentButton, usePiSimplePayments } from '@xhilo/pi-sdk';
+import { SimplePaymentButton, usePiSimplePayments } from '@xhilo/pi-sdk/react';
 
 function BasicSimplePayment() {
   const { createSimplePayment } = usePiSimplePayments();
