@@ -1,13 +1,11 @@
-# @xhilo/pi-sdk-backend
+# @xhilo/pi-sdk Backend
 
 Backend SDK for Pi Network integration with server-side payment processing capabilities.
 
 ## Installation
 
 ```bash
-npm install @xhilo/pi-sdk/backend
-# or
-npm install @xhilo/pi-sdk-backend
+npm install @xhilo/pi-sdk
 ```
 
 ## Features
@@ -16,9 +14,11 @@ npm install @xhilo/pi-sdk-backend
 - **User-to-App (U2A) Payments**: Process payments from users to your app
 - **Ads Verification**: Verify rewarded ads and process rewards
 - **Pi Platform API Integration**: Full integration with Pi Network's official API
-- **Configuration-Driven**: All functions require explicit configuration parameters
+- **Configuration-Driven**: All functions require explicit configuration parameters (no environment variable dependencies)
+- **Async Functions**: All backend actions are async for better serverless compatibility
 - **TypeScript Support**: Complete type definitions
 - **Express.js Ready**: Built for Node.js server environments
+- **Serverless Compatible**: Works in Vercel, AWS Lambda, and other serverless environments
 
 ## Quick Start
 
@@ -52,7 +52,7 @@ const piPlatformConfig: PiPlatformConfig = {
   apiKey: process.env.PI_API_KEY!
 };
 
-// All backend functions require explicit configuration
+// All backend functions require explicit configuration and are async
 const a2uResult = await processA2UWithdrawalAction({
   withdrawalAmount: 10.0,
   userId: 'user-uid',

@@ -4,13 +4,14 @@ This is the documentation site for the Pi SDK - a unified SDK for Pi Network int
 
 ## 🏗️ Architecture
 
-The Pi SDK uses an **action-based architecture** for backend operations:
+The Pi SDK uses a **configuration-driven architecture** for all operations:
 
-- **User-to-App (U2A) Payments**: Uses `piPlatformClient` and `userToAppPayment` actions
-- **App-to-User (A2U) Payments**: Uses `pi-backend-sdk` and `appToUserPayment` actions
+- **Configuration-Driven**: All functions require explicit configuration parameters (no environment variable dependencies)
+- **User-to-App (U2A) Payments**: Uses `PiPlatformConfig` with `apiKey` only
+- **App-to-User (A2U) Payments**: Uses `PiBackendConfig` with `apiKey` and `privateSeed`
 - **Consistent Error Handling**: All actions return standardized `PiOperationResult` types
 - **Type Safety**: Full TypeScript support with comprehensive type definitions
-- **Security**: Optional access token validation for enhanced security
+- **Security**: Access token validation and user identity verification
 
 ## 🎯 Features
 
@@ -22,11 +23,13 @@ The Pi SDK uses an **action-based architecture** for backend operations:
 - **`XhiloPiProvider`** - Context provider for Pi Network state
 
 ### **Backend Actions**
-- **`userToAppPayment`** - Server-side U2A payment processing
-- **`appToUserPayment`** - Server-side A2U payment processing
-- **`ads`** - Ads verification and reward processing
-- **`piPlatformFetchClient`** - Pi Platform API integration
-- **`pi-backend-sdk`** - Pi Backend SDK integration
+- **`processA2UWithdrawalAction`** - Server-side A2U payment processing
+- **`createAndMakeA2UPayment`** - High-level A2U payment helper
+- **`approvePaymentAction`** - Server-side U2A payment approval
+- **`completePaymentAction`** - Server-side U2A payment completion
+- **`verifyRewardedAdAction`** - Ads verification and reward processing
+- **`getAdEligibilityAction`** - Check user ad eligibility
+- **`getUserAdStatsAction`** - Get user ad statistics
 
 ## 🔐 Security Features
 
@@ -36,14 +39,18 @@ The Pi SDK uses an **action-based architecture** for backend operations:
 - **User Identity Verification**: Ensures payments are from authenticated users
 - **Tamper Prevention**: Prevents malicious users from faking payment requests
 
-### **Environment Variables**
-```bash
-# For U2A payments (User-to-App)
-PI_APP_SECRET=your_pi_app_secret_key
+### **Configuration Management**
+```typescript
+// PiPlatformConfig for U2A payments (User-to-App)
+const piPlatformConfig: PiPlatformConfig = {
+  apiKey: process.env.PI_API_KEY!
+};
 
-# For A2U payments (App-to-User)
-PI_API_KEY=your_pi_api_key
-PI_WALLET_PRIVATE_SEED=your_wallet_private_seed
+// PiBackendConfig for A2U payments (App-to-User)
+const piBackendConfig: PiBackendConfig = {
+  apiKey: process.env.PI_API_KEY!,
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!
+};
 ```
 
 ## 🚀 Quick Start
@@ -55,26 +62,29 @@ PI_WALLET_PRIVATE_SEED=your_wallet_private_seed
 
 2. **Create a new Next.js app with template:**
    ```bash
-   npm install @xhilo/pi-sdk --template -nextjs
+   npx create-next-app@latest my-pi-app --template @xhilo/pi-sdk/nextjs
    ```
 
 3. **Read the documentation:**
+   - [Configuration Guide](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/CONFIGURATION_GUIDE) - Start here for proper setup
+   - [Real Examples](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/REAL_EXAMPLES) - Working examples based on actual implementation
    - [Getting Started](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/getting-started)
-   - [Developer Flow](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/react/dev-flow)
    - [API Reference](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/api-reference)
    - [React SDK](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/react)
    - [Backend SDK](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/backend)
-   - [Examples](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/examples)
    - [Templates](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/templates)
    - [Troubleshooting](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/troubleshooting)
 
 ## 📚 Documentation Sections
 
+### [Configuration Guide](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/CONFIGURATION_GUIDE)
+Complete guide to the configuration-driven architecture, including PiBackendConfig vs PiPlatformConfig, framework integration, and best practices.
+
+### [Real Examples](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/REAL_EXAMPLES)
+Working examples based on the actual implementation, including React hooks, backend actions, and complete integration patterns.
+
 ### [Getting Started](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/getting-started)
 Learn how to set up the SDK in your project, configure environment variables, and make your first payment.
-
-### [Developer Flow](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/react/dev-flow)
-Complete implementation guide for payments and ads with step-by-step examples and best practices.
 
 ### [API Reference](https://github.com/xhilo-labs/sdk-docs/tree/main/pi-sdk/api-reference)
 Complete API documentation for all components, hooks, and backend functions.

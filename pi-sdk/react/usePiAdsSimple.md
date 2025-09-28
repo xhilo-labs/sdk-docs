@@ -14,7 +14,7 @@ A simplified frontend-only hook for displaying Pi Network ads without backend in
 ## 🚀 Installation
 
 ```bash
-npm install @xhilo/pi-sdk@0.1.0
+npm install @xhilo/pi-sdk@0.2.14
 ```
 
 ## 📖 Basic Usage

@@ -1,6 +1,6 @@
 # Pi React SDK Documentation
 
-Comprehensive documentation for the `@xhilo/pi-react-sdk` package, covering all hooks, components, and usage patterns.
+Comprehensive documentation for the `@xhilo/pi-sdk/react` package, covering all hooks, components, and usage patterns.
 
 ## 📚 Documentation Index
 
@@ -39,13 +39,13 @@ Comprehensive documentation for the `@xhilo/pi-react-sdk` package, covering all 
 ### Installation
 
 ```bash
-npm install @xhilo/pi-sdk@0.1.0
+npm install @xhilo/pi-sdk
 ```
 
 ### Basic Setup
 
 ```tsx
-import { XhiloPiProvider, useXhiloPiNetwork } from '@xhilo/pi-sdk';
+import { XhiloPiProvider, useXhiloPiNetwork } from '@xhilo/pi-sdk/react';
 
 function App() {
   return (
@@ -89,7 +89,7 @@ function MyComponent() {
 
 ### **Simple Payment Flow**
 ```tsx
-import { usePiSimplePayments } from '@xhilo/pi-sdk';
+import { usePiSimplePayments } from '@xhilo/pi-sdk/react';
 
 function PaymentComponent() {
   const { createPayment } = usePiSimplePayments();
@@ -111,7 +111,7 @@ function PaymentComponent() {
 
 ### **Advanced Payment with Backend**
 ```tsx
-import { usePiPayments } from '@xhilo/pi-sdk';
+import { usePiPayments } from '@xhilo/pi-sdk/react';
 
 function AdvancedPaymentComponent() {
   const { createPayment } = usePiPayments({
@@ -126,7 +126,7 @@ function AdvancedPaymentComponent() {
 
 ### **Ads Integration**
 ```tsx
-import { usePiAds } from '@xhilo/pi-sdk';
+import { usePiAds } from '@xhilo/pi-sdk/react';
 
 function AdsComponent() {
   const { showAd, verifyRewardedAd } = usePiAds({
@@ -167,14 +167,14 @@ PI_WALLET_PRIVATE_SEED=your_wallet_private_seed
 </XhiloPiProvider>
 ```
 
-## 🆕 What's New in v0.1.0
+## 🆕 What's New in v0.2.14
 
-- ✅ **React 19 Support**: Full compatibility with React 19
-- ✅ **Enhanced Ads System**: Complete backend integration for ads
-- ✅ **Access Token Validation**: Improved security for U2A payments
-- ✅ **New Hooks**: `usePiAds`, `usePiAdsSimple` for ads functionality
-- ✅ **Better Error Handling**: Standardized error responses
-- ✅ **TypeScript Improvements**: Enhanced type definitions
+- ✅ **Configuration-Driven Architecture**: No environment variable dependencies in SDK
+- ✅ **Dynamic Imports**: Better serverless compatibility for pi-backend module
+- ✅ **Async Backend Functions**: All backend actions now properly async
+- ✅ **Enhanced Error Handling**: Better error messages and debugging
+- ✅ **Serverless Ready**: Works in Vercel, AWS Lambda, and other platforms
+- ✅ **TypeScript Improvements**: Enhanced type definitions and IntelliSense
 
 ## 🔗 Related Documentation
 
