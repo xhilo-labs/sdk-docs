@@ -14,7 +14,9 @@ npm install @xhilo/pi-sdk-backend
 
 - **App-to-User (A2U) Payments**: Send Pi from your app to users
 - **User-to-App (U2A) Payments**: Process payments from users to your app
+- **Ads Verification**: Verify rewarded ads and process rewards
 - **Pi Platform API Integration**: Full integration with Pi Network's official API
+- **Configuration-Driven**: All functions require explicit configuration parameters
 - **TypeScript Support**: Complete type definitions
 - **Express.js Ready**: Built for Node.js server environments
 
@@ -23,7 +25,7 @@ npm install @xhilo/pi-sdk-backend
 ### Environment Setup
 
 ```bash
-# .env
+# .env (for your application)
 PI_API_KEY=your_pi_api_key
 PI_WALLET_PRIVATE_SEED=your_wallet_private_seed
 NODE_ENV=development # or production
@@ -33,24 +35,35 @@ NODE_ENV=development # or production
 
 ```typescript
 import { 
-  createPiBackendClient, 
-  createPiPlatformClient,
   processA2UWithdrawalAction,
   approvePaymentAction,
-  completePaymentAction 
+  completePaymentAction,
+  PiBackendConfig,
+  PiPlatformConfig 
 } from '@xhilo/pi-sdk/backend';
 
-// Initialize clients
-const piBackend = createPiBackendClient({
+// Configuration objects (required for all functions)
+const piBackendConfig: PiBackendConfig = {
   apiKey: process.env.PI_API_KEY!,
-  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!,
-  sandbox: process.env.NODE_ENV === 'development'
-});
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!
+};
 
-const piPlatform = createPiPlatformClient({
-  apiKey: process.env.PI_API_KEY!,
-  sandbox: process.env.NODE_ENV === 'development'
-});
+const piPlatformConfig: PiPlatformConfig = {
+  apiKey: process.env.PI_API_KEY!
+};
+
+// All backend functions require explicit configuration
+const a2uResult = await processA2UWithdrawalAction({
+  withdrawalAmount: 10.0,
+  userId: 'user-uid',
+  memo: 'Withdrawal from MyApp',
+  metadata: { withdrawalId: 'wd-123' }
+}, piBackendConfig);
+
+const u2aResult = await approvePaymentAction({
+  paymentId: 'payment-123',
+  userId: 'user-uid'
+}, piPlatformConfig);
 ```
 
 ## API Reference
@@ -60,7 +73,16 @@ const piPlatform = createPiPlatformClient({
 Send Pi from your app to users.
 
 ```typescript
-import { processA2UWithdrawalAction, createAndMakeA2UPayment } from '@xhilo/pi-sdk/backend';
+import { 
+  processA2UWithdrawalAction, 
+  createAndMakeA2UPayment,
+  PiBackendConfig 
+} from '@xhilo/pi-sdk/backend';
+
+const piBackendConfig: PiBackendConfig = {
+  apiKey: process.env.PI_API_KEY!,
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!
+};
 
 // Process withdrawal
 const result = await processA2UWithdrawalAction({
@@ -71,13 +93,14 @@ const result = await processA2UWithdrawalAction({
     withdrawalId: 'wd-123',
     reason: 'earnings'
   }
-});
+}, piBackendConfig);
 
 // High-level helper
 const result = await createAndMakeA2UPayment(
   'user-uid',
   10.0,
   'Premium Feature',
+  piBackendConfig,
   { customData: 'value' }
 );
 ```
@@ -90,24 +113,65 @@ Process payments from users to your app.
 import { 
   approvePaymentAction, 
   completePaymentAction,
-  getPaymentAction 
+  getPaymentAction,
+  PiPlatformConfig 
 } from '@xhilo/pi-sdk/backend';
+
+const piPlatformConfig: PiPlatformConfig = {
+  apiKey: process.env.PI_API_KEY!
+};
 
 // Approve a payment (called from frontend callback)
 const approveResult = await approvePaymentAction({
   paymentId: 'payment-id',
   userId: 'user-uid'
-});
+}, piPlatformConfig);
 
 // Complete a payment (called from frontend callback)
 const completeResult = await completePaymentAction({
   paymentId: 'payment-id',
   txid: 'transaction-id',
   userId: 'user-uid'
-});
+}, piPlatformConfig);
 
 // Get payment details
-const payment = await getPaymentAction('payment-id');
+const payment = await getPaymentAction('payment-id', piPlatformConfig);
+```
+
+### Ads Verification
+
+Verify rewarded ads and process rewards.
+
+```typescript
+import { 
+  verifyRewardedAdAction,
+  getAdEligibilityAction,
+  getUserAdStatsAction,
+  PiBackendConfig 
+} from '@xhilo/pi-sdk/backend';
+
+const piBackendConfig: PiBackendConfig = {
+  apiKey: process.env.PI_API_KEY!,
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!
+};
+
+// Verify rewarded ad
+const adResult = await verifyRewardedAdAction({
+  adId: 'ad123',
+  rewardAmount: 0.1,
+  userId: 'user123',
+  metadata: { source: 'mobile' }
+}, piBackendConfig);
+
+// Check ad eligibility
+const eligibility = await getAdEligibilityAction({
+  userId: 'user123',
+  adType: 'rewarded',
+  maxDailyViews: 5
+}, piBackendConfig);
+
+// Get user ad stats
+const stats = await getUserAdStatsAction('user123', piBackendConfig);
 ```
 
 ### Pi Platform API Client
@@ -173,16 +237,28 @@ import express from 'express';
 import { 
   processA2UWithdrawalAction,
   approvePaymentAction,
-  completePaymentAction 
+  completePaymentAction,
+  PiBackendConfig,
+  PiPlatformConfig 
 } from '@xhilo/pi-sdk/backend';
 
 const app = express();
 app.use(express.json());
 
+// Configuration objects
+const piBackendConfig: PiBackendConfig = {
+  apiKey: process.env.PI_API_KEY!,
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!
+};
+
+const piPlatformConfig: PiPlatformConfig = {
+  apiKey: process.env.PI_API_KEY!
+};
+
 // A2U withdrawal endpoint
 app.post('/api/withdraw', async (req, res) => {
   try {
-    const result = await processA2UWithdrawalAction(req.body);
+    const result = await processA2UWithdrawalAction(req.body, piBackendConfig);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -195,7 +271,7 @@ app.post('/api/payments/:id/approve', async (req, res) => {
     const result = await approvePaymentAction({
       paymentId: req.params.id,
       userId: req.body.userId
-    });
+    }, piPlatformConfig);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -209,7 +285,7 @@ app.post('/api/payments/:id/complete', async (req, res) => {
       paymentId: req.params.id,
       txid: req.body.txid,
       userId: req.body.userId
-    });
+    }, piPlatformConfig);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });

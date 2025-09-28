@@ -57,45 +57,66 @@ NEXT_PUBLIC_PI_SANDBOX=true
 ### React Integration
 
 ```tsx
-import { XhiloPiProvider } from '@xhilo/pi-sdk/react'
-import { useXhiloPiUser } from '@xhilo/pi-sdk/react'
+import { useXhiloPiNetwork, usePiPayments, usePiSimplePayments } from '@xhilo/pi-sdk/react'
 
 function App() {
-  return (
-    <XhiloPiProvider>
-      <MyComponent />
-    </XhiloPiProvider>
-  )
+  return <MyComponent />
 }
 
 function MyComponent() {
-  const user = useXhiloPiUser()
+  const { user, isInitialized, authenticate } = useXhiloPiNetwork()
+  const { createAndCompletePayment } = usePiPayments()
+  const { createSimplePayment } = usePiSimplePayments()
   
-  if (user) {
-    return <div>Welcome, {user.username}!</div>
+  if (!isInitialized) {
+    return <div>Initializing Pi SDK...</div>
   }
   
-  return <div>Please authenticate with Pi Network</div>
+  if (!user) {
+    return (
+      <button onClick={() => authenticate(['payments'])}>
+        Login with Pi Network
+      </button>
+    )
+  }
+  
+  return <div>Welcome, {user.username}!</div>
 }
 ```
 
 ### Backend Integration
 
-```javascript
-import { PiBackendClient } from '@xhilo/pi-sdk/backend'
+```typescript
+import { 
+  processA2UWithdrawalAction, 
+  approvePaymentAction,
+  PiBackendConfig,
+  PiPlatformConfig 
+} from '@xhilo/pi-sdk/backend'
 
-const piClient = new PiBackendClient({
-  apiKey: process.env.PI_API_KEY,
-  walletPrivateSeed: process.env.PI_WALLET_PRIVATE_SEED,
-  sandbox: process.env.NODE_ENV !== 'production'
-})
+// Configuration objects (required for all backend functions)
+const piBackendConfig: PiBackendConfig = {
+  apiKey: process.env.PI_API_KEY!,
+  privateSeed: process.env.PI_WALLET_PRIVATE_SEED!
+}
 
-// Process payment
-const payment = await piClient.createPayment({
-  amount: 1.0,
+const piPlatformConfig: PiPlatformConfig = {
+  apiKey: process.env.PI_API_KEY!
+}
+
+// A2U Payment (App-to-User)
+const a2uResult = await processA2UWithdrawalAction({
+  withdrawalAmount: 1.0,
+  userId: 'user123',
   memo: 'Test payment',
   metadata: { userId: '123' }
-})
+}, piBackendConfig)
+
+// U2A Payment (User-to-App) 
+const u2aResult = await approvePaymentAction({
+  paymentId: 'payment123',
+  userId: 'user123'
+}, piPlatformConfig)
 ```
 
 ## 🔧 Next.js Setup
@@ -160,16 +181,21 @@ export default function RootLayout({ children }) {
 import { usePiSimplePayments } from '@xhilo/pi-sdk/react'
 
 function PaymentComponent() {
-  const { createPayment } = usePiSimplePayments()
+  const { createSimplePayment } = usePiSimplePayments()
 
   const handlePayment = async () => {
     try {
-      const result = await createPayment({
+      const result = await createSimplePayment({
+        userId: 'user123',
         amount: 1.0,
-        memo: 'Test payment',
-        metadata: { item: 'test' }
+        itemName: 'Test Item',
+        customMetadata: { orderId: '123' }
+      }, {
+        onSuccess: (paymentId) => console.log('Payment successful:', paymentId),
+        onError: (error) => console.error('Payment failed:', error),
+        onCancel: () => console.log('Payment cancelled')
       })
-      console.log('Payment created:', result)
+      console.log('Payment result:', result)
     } catch (error) {
       console.error('Payment failed:', error)
     }
@@ -189,34 +215,36 @@ function PaymentComponent() {
 import { usePiPayments } from '@xhilo/pi-sdk/react'
 
 function AdvancedPayment() {
-  const { createPayment, approvePayment, completePayment } = usePiPayments()
+  const { createAndCompletePayment, isProcessing, error, success } = usePiPayments()
 
   const handlePayment = async () => {
     try {
-      // 1. Create payment
-      const payment = await createPayment({
+      const result = await createAndCompletePayment({
+        userId: 'user123',
         amount: 5.0,
         memo: 'Advanced payment',
-        metadata: { orderId: '123' }
+        metadata: { orderId: '123' },
+        onSuccess: (paymentId) => console.log('Payment successful:', paymentId),
+        onError: (error) => console.error('Payment failed:', error),
+        onCancel: () => console.log('Payment cancelled'),
+        onProcessUpdate: (processData) => {
+          console.log('Payment process:', processData.stage, processData.message)
+        }
       })
-
-      // 2. Approve payment (user action)
-      const approved = await approvePayment(payment.identifier)
-
-      if (approved) {
-        // 3. Complete payment (backend call)
-        const completed = await completePayment(payment.identifier)
-        console.log('Payment completed:', completed)
-      }
+      console.log('Payment result:', result)
     } catch (error) {
       console.error('Payment failed:', error)
     }
   }
 
   return (
-    <button onClick={handlePayment}>
-      Pay 5 Pi
-    </button>
+    <div>
+      <button onClick={handlePayment} disabled={isProcessing}>
+        {isProcessing ? 'Processing...' : 'Pay 5 Pi'}
+      </button>
+      {error && <div className="error">Error: {error}</div>}
+      {success && <div className="success">Payment successful!</div>}
+    </div>
   )
 }
 ```
